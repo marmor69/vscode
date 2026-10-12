@@ -1,0 +1,36 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License. See LICENSE.txt in the project root.
+services:
+  icm-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    init: true
+    environment:
+      # Set this in Dokploy's Environment section (at least 32 URL-safe characters).
+      ICM_CONNECTION_TOKEN: ${ICM_CONNECTION_TOKEN:?Set ICM_CONNECTION_TOKEN in Dokploy}
+      ICM_INSTALL_CODEX: ${ICM_INSTALL_CODEX:-true}
+    volumes:
+      - icm-workspaces:/workspaces
+      # Includes settings, installed extensions, Codex/Claude credentials, and npm prefix.
+      - icm-home:/home/node
+    expose:
+      - "8080"
+    networks:
+      - dokploy-network
+    security_opt:
+      - no-new-privileges:true
+      # Keep Docker's syscall filter, allowing the namespaces used by Codex/bubblewrap.
+      - seccomp:./docs/docker/seccomp.json
+    cap_drop:
+      - ALL
+    stop_grace_period: 30s
+
+volumes:
+  icm-workspaces:
+  icm-home:
+
+networks:
+  dokploy-network:
+    external: true

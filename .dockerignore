@@ -1,0 +1,27 @@
+# Do not send Git history or credential-bearing config into the build context.
+.git
+**/node_modules
+**/out
+**/dist
+**/*.tsbuildinfo
+.build
+out-*
+.vscode-test
+.eslintcache
+.cache
+.tmp
+.profile-oss
+.claude
+.agent-validation
+test-results
+.playwright-cli
+.playwright-mcp
+extensions/**/markdown-editor-out
+extensions/markdown-language-features/media/index.js
+extensions/markdown-language-features/media/pre.js
+src/vs/base/browser/ui/codicons/codicon/codicon.ttf
+.env
+.env.*
+!.env.example
+product.overrides.json
+*.log

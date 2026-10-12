@@ -1,0 +1,212 @@
+# Im Browser mit Dateien, Terminal und Codex arbeiten
+
+Dieser Weg baut den vollständigen **Code – OSS Web-Server** aus diesem Fork. Die
+Extensions und Agenten laufen im Linux-Container; der Browser zeigt die Oberfläche.
+Dateien werden im Arbeitsvolume gespeichert. Dies ist ein anderer Betriebsweg als
+der JavaScript-Web-Teststarter, dessen Beispieldateien nur im Speicher bearbeitet werden.
+
+## Dokploy einrichten
+
+1. Erstelle in Dokploy einen **Compose-Service mit Git-Quelle**.
+2. Repository: `https://github.com/marmor69/vscode.git`, Branch: `main`.
+3. Compose-Pfad: `compose.yml`, Build-Kontext: die Repository-Wurzel.
+4. Trage unter **Environment** folgende Werte ein:
+
+   ```dotenv
+   ICM_CONNECTION_TOKEN=HIER_EINEN_EIGENEN_LANGEN_TOKEN_EINTRAGEN
+   ICM_INSTALL_CODEX=true
+   ```
+
+   Der Token muss mindestens 32 Zeichen aus Buchstaben, Ziffern, `_` oder `-` haben.
+   Einen passenden zufälligen Token kannst du auf deinem Rechner mit
+   `openssl rand -hex 32` erzeugen. Verwende einen eigenen Token pro Installation.
+
+5. Lege eine HTTPS-Domain an, die auf den Service **icm-web**, Container-Port
+   **8080** zeigt. Verwende eine eigene Subdomain am Pfad `/`, beispielsweise
+   `https://icm.example.org`. Dokploy/Traefik muss WebSockets weiterleiten.
+6. Deploye den Service. Der erste Build kompiliert den Server und seine Extensions
+   und dauert erheblich länger als ein Container-Neustart.
+7. Öffne beim ersten Zugriff:
+
+   ```text
+   https://icm.example.org/?tkn=DEIN_TOKEN
+   ```
+
+   Der Server setzt ein Zugangscookie und entfernt den Token aus der Browser-URL.
+   Die bloße URL ohne gültigen Zugang liefert zunächst `Forbidden`; das ist beabsichtigt.
+   Nach einem Tokenwechsel musst du dich mit dem neuen Link erneut anmelden.
+
+Das Compose nutzt das vorhandene externe Netzwerk `dokploy-network`. Es veröffentlicht
+keinen Port direkt auf dem VPS. Zugang zu Domain und Shell gilt für den gesamten
+Container; verwende für unabhängige Nutzer getrennte Deployments mit eigenen Volumes
+und Tokens.
+
+Das Compose verwendet das mitgelieferte [seccomp-Profil](../../docs/docker/seccomp.json).
+Es erweitert Dockers Standardfilter um die Namespace- und Mount-Aufrufe für Codex'
+Linux-Sandbox. Der Container läuft weiterhin ohne Root-Rechte, ohne zusätzliche
+Capabilities und mit `no-new-privileges`; die übrigen Filterregeln bleiben erhalten.
+Das Profil basiert auf
+[moby/profiles, Stand 4b8214f](https://github.com/moby/profiles/blob/4b8214fc4971e06172938a1f1554ccff6647ee80/seccomp/default.json)
+unter der mitgelieferten [Apache-2.0-Lizenz](../../docs/docker/LICENSE.seccomp).
+
+Für den Source-Build empfehlen wir mindestens **8 GB freien RAM und 20 GB freien
+Platz**, bei kleinen VPS den Image-Build auf einem größeren Rechner. Der laufende
+Server braucht deutlich weniger Ressourcen. Der Docker-Build unterstützt Linux
+`amd64` und `arm64`; verwende möglichst die native Architektur deines Build-Rechners.
+
+## Daten bleiben bei Neustart und Redeploy erhalten
+
+| Volume | Container-Pfad | Inhalt |
+| --- | --- | --- |
+| `icm-workspaces` | `/workspaces` | Arbeitsordner, Kontext, Workflows und Ergebnisse |
+| `icm-home` | `/home/node` | Server-Einstellungen, installierte Extensions, Agentenanmeldung und CLI-Konfiguration |
+
+Ansicht und lokale Browser-Einstellungen speichert die Web-Oberfläche zusätzlich
+in den Daten des jeweiligen Browsers. Verwende dieselbe Domain; ein anderer Browser
+oder gelöschte Website-Daten können diese Einstellungen zurücksetzen.
+
+Der Container läuft als Nutzer `node` mit UID/GID 1000. Die Named Volumes bekommen
+beim ersten Start die passenden Rechte. Bei eigenen Bind-Mounts muss der Host-Ordner
+für UID 1000 schreibbar sein.
+
+Dokploy-Neustarts und normale Redeploys behalten diese Volumes. Sichere beide Volumes
+vor Änderungen am Deployment. **Volumes löschen**, `docker compose down --volumes`
+oder ein Deployment unter einem neuen Compose-Projektnamen können die bisherigen
+Daten entfernen bzw. andere Volumes verwenden.
+
+Die VS-Code-Dateiverwaltung und der Agent sehen dieselben Dateien unter `/workspaces`.
+Es wird kein Arbeitsordner automatisch mit Beispieldateien überschrieben. Falls du
+die Vorlage verwenden möchtest, öffne die Dokploy-Container-Shell oder führe aus:
+
+```sh
+docker compose exec icm-web bash
+cp -R /opt/simple-workspace/examples/icm-starter /workspaces/mein-erster-workflow
+```
+
+Wähle den neuen Ordner anschließend über **Open Folder** in der App.
+
+## Codex und weitere Agenten
+
+Mit `ICM_INSTALL_CODEX=true` installiert der erste Start die Extension
+`openai.chatgpt` aus Open VSX, sofern sie noch fehlt. Die Anmeldung erfolgt anschließend
+rechts in der Extension. Ein Installationsfehler verhindert den Serverstart nicht;
+du kannst die Extension dann über **Extensions** oder aus einer offiziellen `.vsix`
+installieren. Automatische Installation lässt sich mit `ICM_INSTALL_CODEX=false`
+ausschalten. Bereits installierte Extensions bleiben erhalten.
+
+Code–OSS enthält Microsofts proprietären Extension-Signaturprüfer nicht. Deshalb
+setzt der erste Start in neuen Serverprofilen `extensions.verifySignature=false`;
+Downloads erfolgen weiterhin über HTTPS mit Zertifikatsprüfung. Bestehende
+Einstellungsdateien werden nicht überschrieben. Falls dort die Signaturprüfung
+aktiviert ist, können Open-VSX-Installationen mit `Signature verification was not
+executed` scheitern. Die CLI liest `server/data/User/settings.json`, der laufende
+Server `server/data/Machine/settings.json` unter `/home/node/.local/share/simple-workspace`.
+
+Codex bringt seinen Agentenprozess mit; für die GUI ist keine zusätzliche globale
+Codex-CLI notwendig. Kontovoraussetzungen und Anmeldung werden von der Extension
+verwaltet. Der Server aktiviert die von der offiziellen Codex-Extension benötigten
+experimentellen VS-Code-APIs gezielt für `openai.chatgpt`. Die Anmeldung muss auf
+der tatsächlichen Dokploy-Domain geprüft werden. Das Docker-Image enthält keine
+Anmeldedaten oder API-Schlüssel.
+
+Falls **Restricted Mode** angezeigt wird, öffne **Manage** und vertraue deinem
+eigenen Arbeitsordner über **Trust**, damit Codex aktiviert werden kann. Die
+Arbeitsordner-Vertrauensprüfung bleibt eingeschaltet.
+
+Weitere Extensions lassen sich im Open-VSX-Katalog installieren. Falls du zusätzlich
+eine CLI verwenden möchtest, öffne ein Terminal über **F1 → Terminal: Create New
+Terminal** oder die Dokploy-Container-Shell. Node.js, npm, Bash, Git, curl, SSH-Client,
+ripgrep und bubblewrap für die Linux-Sandbox sind vorhanden. Beispielsweise:
+
+```sh
+npm install -g @openai/codex
+codex --version
+```
+
+Auf einem VPS empfiehlt OpenAI bei Problemen mit der Browser-Rückleitung die
+[Device-Code-Anmeldung](https://developers.openai.com/codex/auth/#login-on-headless-devices).
+Nach der CLI-Installation kannst du im Container `codex login --device-auth` aufrufen
+und den angezeigten Link auf deinem eigenen Rechner öffnen. Device-Code-Anmeldung
+muss gegebenenfalls zuerst in den ChatGPT-Sicherheitseinstellungen bzw. vom
+Workspace-Administrator aktiviert werden. Der CLI- und der Extension-Zugang nutzen
+das persistente Nutzerverzeichnis im Container.
+
+Globale npm-Installationen des Nutzers landen in `/home/node/.local` und bleiben im
+Profilvolume erhalten. Claude Code kann über den vom Hersteller dokumentierten
+Linux-Installationsweg und seine offizielle Extension ergänzt werden. Die vereinfachte
+Oberfläche richtet zunächst Codex im rechten Panel ein.
+
+## Lokal mit Docker testen
+
+Der gleiche Dockerfile funktioniert auch ohne Dokploy:
+
+```sh
+git clone --depth 1 https://github.com/marmor69/vscode.git simple-workspace
+cd simple-workspace
+docker build -t simple-workspace .
+```
+
+Setze `ICM_CONNECTION_TOKEN` auf einen eigenen zufälligen Token, beispielsweise mit
+`export ICM_CONNECTION_TOKEN="$(openssl rand -hex 32)"`, und starte:
+
+```sh
+docker run --name icm-web --init --restart unless-stopped \
+  --security-opt no-new-privileges --cap-drop ALL \
+  --security-opt seccomp=./docs/docker/seccomp.json \
+  -p 127.0.0.1:8080:8080 \
+  --env ICM_CONNECTION_TOKEN --env ICM_INSTALL_CODEX=true \
+  --volume icm-workspaces:/workspaces \
+  --volume icm-home:/home/node \
+  simple-workspace
+```
+
+Öffne `http://localhost:8080/?tkn=DEIN_TOKEN`. HTTPS ist für eine entfernte Domain
+und für Browserfunktionen wie Webviews erforderlich; localhost ist für den lokalen
+Test ausgenommen. Der Container wird gesund, wenn `/version` antwortet.
+
+## Updates und Fehlerdiagnose
+
+Für Updates deploye einen neuen Stand von `main`. Der Server wird **beim Image-Build**
+kompiliert; beim Start gibt es keine erneute npm-Installation des Projekts. Einstellungen,
+Dokumente und installierte Extensions kommen aus den bestehenden Volumes.
+
+Bei einer nachträglich gesetzten Einstellung `workbench.simpleUI.enabled=false`
+bleibt die normale Ansicht erhalten. Aktiviere **Simple Workspace** im Zahnradmenü,
+um wieder zur einfachen Ansicht zu wechseln.
+
+- **Forbidden:** Rufe die URL einmal mit `?tkn=...` auf; prüfe den gesetzten Token.
+- **Dauerhaftes Laden / reconnect:** Prüfe Domain, Port 8080 und die WebSocket-Weiterleitung.
+- **Nicht schreibbare Dateien:** Prüfe die Rechte des Volumes bzw. Bind-Mounts für UID 1000.
+- **Build abgebrochen:** Prüfe den ersten Fehler im Build-Log und freien RAM/Platz.
+- **Codex-Anmeldung:** Verwende die Anmeldung innerhalb der Extension. Eine Rückleitung
+  auf `localhost` bezeichnet bei einem entfernten Server möglicherweise den Container;
+  prüfe den von OpenAI für Remote-Nutzung angebotenen Anmeldeweg.
+- **Codex-Sandbox / `No permissions to create a new namespace`:** Prüfe, dass das
+  mitgelieferte seccomp-Profil verwendet wird. Auch der VPS-Kernel muss unprivilegierte
+  User-Namespaces erlauben; auf manchen Ubuntu-Hosts braucht bubblewrap ein passendes
+  AppArmor-Profil. OpenAI beschreibt die
+  [Linux-Voraussetzungen](https://developers.openai.com/codex/concepts/sandboxing#prerequisites).
+  Ein Docker-Image kann diese Host-Einstellungen nicht selbst ändern.
+- **Leere Codex-Ansicht / Service-Worker-Fehler:** Verwende HTTPS und einen Browser,
+  dessen Einstellungen Service Workers und die Webview-Ressourcen erlauben.
+
+Der bisherige Compose mit `@vscode/test-web`, CommonJS-Umschreibung und Koa-Protokoll-Patch
+wird durch diesen Serverbetrieb ersetzt. Diese Patches werden hier nicht benötigt.
+
+Für Builds in einer Umgebung mit einem eigenen HTTPS-Proxy kann dessen CA als optionales
+BuildKit-Secret `proxy_ca` übergeben werden. Das Zertifikat wird nur während des Builds
+verwendet und nicht in das fertige Image kopiert.
+
+## Umfang der Prüfung
+
+Auf Linux `amd64` wurden Docker-Build, Compose-Start, Zugangstoken, Cookie-Anmeldung,
+Reverse-Proxy-Domain, native Terminalprozesse, persistente Dateien und die automatische
+Codex-Installation geprüft. Der mitgelieferte Codex-Prozess konnte innerhalb seiner
+Linux-Sandbox Dateien im Arbeitsordner lesen und schreiben. Im Browser wurden die
+vereinfachte Oberfläche, die Activity Bar, Codex im rechten Panel und das Speichern
+einer Markdown-Datei auf dem Server geprüft. Dokumente, Server-Einstellungen und
+installierte Extensions blieben nach einem Neustart erhalten.
+
+Der verwaltete Testbrowser blockiert Service Workers; deshalb ließ sich die Codex-Webview
+dort nicht vollständig testen. Kontoanmeldung und eine KI-Aufgabe auf einer echten
+Dokploy-HTTPS-Domain sowie `arm64` sind noch nicht verifiziert.

@@ -47,7 +47,20 @@ Es kann beim ersten Mal mehrere Minuten dauern. Nach reinen Änderungen an der O
 **Die Browser-Demo dient zum Oberflächentest.** Der eingehängte Beispielordner wird im Speicher
 bearbeitet; Änderungen werden nicht in die lokalen Beispieldateien zurückgeschrieben und können
 beim Neuladen verloren gehen. Die Desktop-Codex-Extension läuft nicht in dieser reinen Web-Demo.
-Für echte Arbeit und dauerhaft gespeicherte Dateien verwende den Desktop-Build.
+Für echte Arbeit und dauerhaft gespeicherte Dateien verwende den Docker-Server
+oder den Desktop-Build.
+
+## Im Browser mit Agent: Docker und Dokploy
+
+Für echte Arbeitsordner, Terminalprozesse und Agenten auf einem VPS verwende den
+vollständigen Serverbetrieb mit [Dockerfile](Dockerfile) und [compose.yml](compose.yml).
+Die [Dokploy-Anleitung](deploy/docker/README.md) beschreibt Git-Quelle, HTTPS-Domain,
+Zugangstoken und dauerhafte Volumes. Der Server und die Extensions werden beim
+Image-Build kompiliert; Neustarts behalten Dateien, Einstellungen und Agentenanmeldung.
+Codex kann beim ersten Start automatisch installiert werden.
+
+Dieser Weg verwendet den Code–OSS-Server mit einem Extension-Prozess im Container.
+Die JavaScript-Web-Demo oben dient weiterhin dem schnellen Oberflächentest.
 
 ## Desktop mit Codex testen
 
