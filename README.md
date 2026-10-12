@@ -28,7 +28,7 @@ Voraussetzungen: Git, **Node.js 24** (mindestens die Version in `.nvmrc`), npm,
 ein aktueller Chrome/Chromium oder Edge und einige GB freier Speicher.
 
 ```sh
-git clone --depth 1 --branch codex/simple-icm-workspace https://github.com/marmor69/vscode.git simple-workspace
+git clone --depth 1 --branch main https://github.com/marmor69/vscode.git simple-workspace
 cd simple-workspace
 node scripts/simple-workspace.ts --setup
 node scripts/simple-workspace.ts --web
