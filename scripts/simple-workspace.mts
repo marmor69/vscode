@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -19,6 +19,16 @@ function run(command: string, args: string[], directory = root) {
 	}
 	if (result.status !== 0) {
 		process.exit(result.status ?? 1);
+	}
+}
+
+function configureWebGallery() {
+	const overridePath = join(root, 'product.overrides.json');
+	const overrides = existsSync(overridePath) ? JSON.parse(readFileSync(overridePath, 'utf8')) : {};
+	if (!overrides.extensionsGallery) {
+		const product = JSON.parse(readFileSync(join(root, 'product.json'), 'utf8'));
+		overrides.extensionsGallery = product.extensionsGallery;
+		writeFileSync(overridePath, `${JSON.stringify(overrides, null, '\t')}\n`);
 	}
 }
 
@@ -41,13 +51,14 @@ if (mode === '--setup') {
 	for (const script of ['build-webview', 'build-markdown-editor']) {
 		run(npm, ['run', script], join(root, 'extensions/markdown-language-features'));
 	}
-	console.log('Ready. Run: node scripts/simple-workspace.ts --web');
+	console.log('Ready. Run: node scripts/simple-workspace.mts --web');
 } else if (mode === '--web') {
 	if (!existsSync(join(root, 'out/vs/workbench/workbench.web.main.js'))) {
-		throw new Error('Run node scripts/simple-workspace.ts --setup first.');
+		throw new Error('Run node scripts/simple-workspace.mts --setup first.');
 	}
+	configureWebGallery();
 	run(process.execPath, ['scripts/code-web.js', 'examples/icm-starter', '--host', 'localhost', '--port', '8080', '--browserType', 'none']);
 } else {
-	console.log('Usage: node scripts/simple-workspace.ts --setup | --web');
+	console.log('Usage: node scripts/simple-workspace.mts --setup | --web');
 	process.exitCode = 1;
 }

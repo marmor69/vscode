@@ -92,8 +92,9 @@ export function hygiene(some: NodeJS.ReadWriteStream | string[] | undefined, run
 	const productJson = es.through(function (file: VinylFile) {
 		const product = JSON.parse(file.contents!.toString('utf8'));
 
-		if (product.extensionsGallery) {
-			console.error(`product.json: Contains 'extensionsGallery'`);
+		// This Code - OSS fork uses the public Open VSX gallery. Keep other galleries out of product.json.
+		if (product.extensionsGallery && product.extensionsGallery.serviceUrl !== 'https://open-vsx.org/vscode/gallery') {
+			console.error(`product.json: Contains an unsupported 'extensionsGallery'`);
 			errorCount++;
 		}
 

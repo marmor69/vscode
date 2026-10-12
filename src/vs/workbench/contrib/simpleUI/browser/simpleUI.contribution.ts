@@ -47,7 +47,7 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).regis
 	type: 'object',
 	properties: {
 		[SIMPLE_UI_ENABLED]: {
-			type: 'boolean', default: false, scope: ConfigurationScope.APPLICATION,
+			type: 'boolean', default: true, scope: ConfigurationScope.APPLICATION,
 			description: localize('simpleUI.enabled.description', "Use a simplified workspace for documents, files, and an AI assistant. Turn off to restore your previous interface."),
 		},
 		[SIMPLE_UI_AGENT]: {
@@ -154,7 +154,7 @@ class SimpleUIContribution extends Disposable {
 	private updateWelcome(): void {
 		this.welcome.clear();
 		// Welcome content uses the linked-text parser, not a full Markdown renderer.
-		const text = (value: string) => value.replace(/[\r\n]+/g, ' ').replace(/\[/g, '［').replace(/\]/g, '］');
+		const text = (value: string) => value.replace(/[\r\n]+/g, ' ').replace(/\[/g, '\uFF3B').replace(/\]/g, '\uFF3D');
 		const link = (label: SimpleUILabel, command: string) => {
 			const caption = text(simpleUILabel(this.configurationService, label));
 			// The welcome button also uses its tooltip as its accessible name.
@@ -166,7 +166,7 @@ class SimpleUIContribution extends Disposable {
 				link('newDocument', 'workbench.simpleUI.newDocument'),
 				link('openFolder', 'workbench.action.files.openFolder'),
 				link('more', 'workbench.simpleUI.more'),
-				link('standardUI', 'workbench.simpleUI.toggle'),
+				link('standardUI', 'workbench.simpleUI.standard'),
 			].join('\n'),
 			renderSecondaryButtons: true,
 		}));
@@ -307,14 +307,45 @@ registerAction2(class extends Action2 {
 registerAction2(class extends Action2 {
 	constructor() {
 		super({
+			id: 'workbench.simpleUI.simple', title: localize2('simpleUI.simple.action', "Simple Workspace"),
+			f1: true, icon: Codicon.layout, precondition: enabled.negate(),
+			menu: [
+				{ id: MenuId.TitleBar, when: enabled.negate(), group: 'navigation', order: 0 },
+				{ id: MenuId.GlobalActivity, when: enabled.negate(), group: '2_configuration', order: 0 },
+			],
+		});
+	}
+	async run(accessor: ServicesAccessor): Promise<void> {
+		await accessor.get(IConfigurationService).updateValue(SIMPLE_UI_ENABLED, true, ConfigurationTarget.USER);
+	}
+});
+
+registerAction2(class extends Action2 {
+	constructor() {
+		super({
 			id: 'workbench.simpleUI.toggle', title: localize2('simpleUI.toggle', "Toggle Simple Workspace"),
 			f1: true, icon: Codicon.layout, toggled: enabled,
-			menu: [{ id: MenuId.TitleBar, group: 'navigation', order: 0 }],
 		});
 	}
 	async run(accessor: ServicesAccessor): Promise<void> {
 		const configuration = accessor.get(IConfigurationService);
 		await configuration.updateValue(SIMPLE_UI_ENABLED, !configuration.getValue<boolean>(SIMPLE_UI_ENABLED), ConfigurationTarget.USER);
+	}
+});
+
+registerAction2(class extends Action2 {
+	constructor() {
+		super({
+			id: 'workbench.simpleUI.standard', title: localize2('simpleUI.standard.action', "Standard Interface"),
+			f1: true, icon: Codicon.layout, precondition: enabled,
+			menu: [
+				{ id: MenuId.TitleBar, when: enabled, group: 'navigation', order: 0 },
+				{ id: MenuId.GlobalActivity, when: enabled, group: '2_configuration', order: 0 },
+			],
+		});
+	}
+	async run(accessor: ServicesAccessor): Promise<void> {
+		await accessor.get(IConfigurationService).updateValue(SIMPLE_UI_ENABLED, false, ConfigurationTarget.USER);
 	}
 });
 
@@ -370,8 +401,8 @@ registerAction2(class extends Action2 {
 		}
 		await configuration.updateValue(SIMPLE_UI_AGENT, selected.id, ConfigurationTarget.USER);
 		if (!selected.installed) {
-			notifications.info(localize('simpleUI.installAgent', "Install the official {0} extension, then choose it here. You can install a publisher-provided VSIX from the Extensions menu.", selected.label));
-			await commands.executeCommand('workbench.extensions.search', `@id:${selected.id}`);
+			notifications.info(localize('simpleUI.installAgent', "Install the official {0} extension from Extensions, then choose it here. You can also install a publisher-provided VSIX file.", selected.label));
+			await commands.executeCommand('workbench.extensions.search', selected.label);
 		} else {
 			await commands.executeCommand('workbench.simpleUI.openAgent');
 		}
@@ -392,9 +423,9 @@ registerAction2(class extends Action2 {
 			['textEditor', 'workbench.simpleUI.textEditor'],
 			['chooseAgent', 'workbench.simpleUI.chooseAgent'],
 			['installExtension', 'workbench.extensions.action.installVSIX'],
-			['extensions', 'workbench.extensions.action.showInstalledExtensions'],
+			['extensions', 'workbench.view.extensions'],
 			['settings', 'workbench.action.openSettings'],
-			['standardUI', 'workbench.simpleUI.toggle'],
+			['standardUI', 'workbench.simpleUI.standard'],
 		];
 		const selected = await accessor.get(IQuickInputService).pick(actions.map(([label, command]) => ({ label: simpleUILabel(configuration, label), detail: simpleUIHint(label), command })), {
 			placeHolder: simpleUILabel(configuration, 'more'),

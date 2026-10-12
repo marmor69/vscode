@@ -12,7 +12,7 @@ export const SIMPLE_UI_AGENT = 'workbench.simpleUI.agent';
 type SettingValue = string | number | boolean;
 
 const settings: Readonly<Record<string, SettingValue>> = {
-	'workbench.activityBar.location': 'hidden',
+	'workbench.activityBar.location': 'default',
 	'workbench.statusBar.visible': false,
 	'workbench.sideBar.location': 'left',
 	'workbench.layoutControl.enabled': false,

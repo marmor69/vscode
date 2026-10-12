@@ -35,13 +35,15 @@ suite('Simple UI settings', () => {
 	test('restores temporary settings without losing user edits made while enabled', async () => {
 		const configuration = new ConfigurationService();
 		configuration.memory.set('editor.fontSize', 18);
+		configuration.memory.set('workbench.activityBar.location', 'hidden');
 		const settings = new SimpleUISettings(configuration);
 		await settings.enable();
 		assert.strictEqual(configuration.memory.get('editor.wordWrap'), 'on');
+		assert.strictEqual(configuration.memory.get('workbench.activityBar.location'), 'default');
 		configuration.user.set('editor.wordWrap', 'bounded');
 		await settings.disable();
 		assert.deepStrictEqual({ memory: [...configuration.memory], user: [...configuration.user] }, {
-			memory: [['editor.fontSize', 18]], user: [['editor.fontSize', 13], ['editor.wordWrap', 'bounded']],
+			memory: [['editor.fontSize', 18], ['workbench.activityBar.location', 'hidden']], user: [['editor.fontSize', 13], ['editor.wordWrap', 'bounded']],
 		});
 	});
 

@@ -45,9 +45,9 @@ const hints: Partial<Record<SimpleUILabel, string>> = {
 	preview: localize('simpleUI.hint.preview', "See formatted Markdown beside your text. The preview updates while you write."),
 	visualEditor: localize('simpleUI.hint.visualEditor', "Edit a saved Markdown document with formatting controls."),
 	textEditor: localize('simpleUI.hint.textEditor', "Edit the document as plain text, including its Markdown formatting marks."),
-	chooseAgent: localize('simpleUI.hint.chooseAgent', "Open the installed Codex extension in the right panel. Sign in inside the extension."),
+	chooseAgent: localize('simpleUI.hint.chooseAgent', "Find and install Codex from Extensions, or open it in the right panel after installation. Sign in inside the extension."),
 	installExtension: localize('simpleUI.hint.installExtension', "Select an official extension file (.vsix) downloaded from its publisher."),
-	extensions: localize('simpleUI.hint.extensions', "Manage installed extensions."),
+	extensions: localize('simpleUI.hint.extensions', "Browse and install extensions from Open VSX, or manage installed extensions."),
 	settings: localize('simpleUI.hint.settings', "Change appearance, labels, and other workspace preferences."),
 };
 

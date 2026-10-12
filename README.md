@@ -9,13 +9,12 @@ Kontext in Ordnern und Markdown-Dateien.
 
 ## Was dieser erste Stand kann
 
-- Umschalten zwischen vollständiger Oberfläche und **Simple Workspace**.
+- **Simple Workspace** öffnet sich bei neuen Profilen automatisch. Über **Standard Interface** links, oben oder im Zahnradmenü wechselst du zurück; **Simple Workspace** bringt dich wieder in die einfache Ansicht.
 - Dateiverwaltung mit gut sichtbaren Aktionen und erklärenden Tooltips.
 - Texte und Markdown direkt bearbeiten; Live Preview und visuellen Markdown-Editor aufrufen.
-- Im einfachen Modus: keine Aktivitätsleiste, Statusleiste, Minimap, Zeilennummern oder
-  automatische Code-Vorschläge. Das untere Panel wird geschlossen; Outline und Timeline werden ausgeblendet.
+- Die Activity Bar links bleibt sichtbar: Explorer, Suche, Quellcodeverwaltung, Erweiterungen und Ansichten installierter Erweiterungen sind direkt erreichbar. Statusleiste, Minimap, Zeilennummern und automatische Code-Vorschläge werden ausgeblendet. Das untere Panel wird geschlossen; Outline und Timeline werden ausgeblendet.
 - Eine installierte offizielle Codex-Extension (`openai.chatgpt`) in das rechte Panel verschieben.
-  Ohne Extension erscheint eine Einführung mit Installation aus einer VSIX-Datei.
+  Ohne Extension erscheint eine Einführung mit Katalogsuche und Installation aus einer VSIX-Datei.
 - Beim Ausschalten die vorherige Anordnung wiederherstellen. Persönliche Editor-Einstellungen
   werden dabei nicht überschrieben.
 
@@ -30,15 +29,15 @@ ein aktueller Chrome/Chromium oder Edge und einige GB freier Speicher.
 ```sh
 git clone --depth 1 --branch main https://github.com/marmor69/vscode.git simple-workspace
 cd simple-workspace
-node scripts/simple-workspace.ts --setup
-node scripts/simple-workspace.ts --web
+node scripts/simple-workspace.mts --setup
+node scripts/simple-workspace.mts --web
 ```
 
 1. Öffne **http://localhost:8080**.
-2. Drücke **F1**, suche **Toggle Simple Workspace** und bestätige mit Enter.
-3. Öffne `START.md` links. Der mitgelieferte Beispielordner erklärt einen kleinen Workflow.
-4. Bearbeite einen Text; öffne **More Actions → Live Preview** für die Markdown-Vorschau.
-5. **Standard Interface** stellt die volle Oberfläche wieder her.
+2. Die einfache Ansicht erscheint automatisch. Öffne `START.md` links. Der mitgelieferte Beispielordner erklärt einen kleinen Workflow.
+3. Bearbeite einen Text; öffne **More Actions → Live Preview** für die Markdown-Vorschau.
+4. Über das Erweiterungssymbol links kannst du den Open-VSX-Katalog durchsuchen.
+5. **Standard Interface** links oder im Zahnradmenü stellt die volle Oberfläche wieder her.
 
 Das Setup installiert festgeschriebene JavaScript-Abhängigkeiten und baut die Web-Oberfläche
 samt den für diese Demo benötigten Erweiterungen. Es installiert weder Electron noch native Module.
@@ -66,19 +65,12 @@ Unter Windows lautet der letzte Aufruf `scripts\code.bat` mit denselben Argument
 Der erste Start lädt zusätzlich Electron und eingebaute Erweiterungen.
 Verwende für diesen Weg **nicht** die Installation mit `--ignore-scripts` aus dem Web-Setup.
 
-1. Aktiviere **Toggle Simple Workspace** über F1 oder setze
-   **Workbench › Simple UI: Enabled** in den Einstellungen.
-2. Besorge die offizielle Codex-VSIX über einen vom Herausgeber unterstützten Installationsweg;
-   siehe [Codex IDE-Dokumentation](https://developers.openai.com/codex/ide/).
-3. Wähle rechts **Install Extension File…**, installiere die Datei und lade bei Bedarf das Fenster neu.
-4. **Open Codex → Codex** öffnet die installierte Extension rechts. Melde dich dort an.
-5. Kopiere `examples/icm-starter` in deinen eigenen Arbeitsordner, öffne ihn über **Open Folder**
-   und folge `START.md`.
+1. Die einfache Ansicht ist beim ersten Start aktiv. Über **Standard Interface** im Zahnradmenü oder links kannst du jederzeit zur normalen Oberfläche wechseln.
+2. Öffne **Extensions** in der Activity Bar links und suche nach **Codex**. Prüfe den Herausgeber **OpenAI** und die Kennung `openai.chatgpt`, bevor du installierst.
+3. **Open Codex → Codex** öffnet die installierte Extension rechts. Melde dich dort an.
+4. Kopiere `examples/icm-starter` in deinen eigenen Arbeitsordner, öffne ihn über **Open Folder** und folge `START.md`.
 
-Code – OSS hat hier keine konfigurierte Extension-Galerie. Die offizielle Extension wird weder
-mitgeliefert noch durch einen eigenen Agenten ersetzt. Installation, Anmeldung und tatsächliche
-Codex-Ausführung im Desktop-Fork müssen noch auf den Zielsystemen überprüft werden.
-Die Extension bestimmt ihre eigenen Berechtigungen, Anmeldung und Kontovoraussetzungen.
+Der Fork nutzt [Open VSX](https://open-vsx.org/) als Erweiterungskatalog. Das ist **nicht** der Microsoft Visual Studio Marketplace; manche dort gelisteten Erweiterungen fehlen auf Open VSX. Die offizielle Codex-Erweiterung ist auf Open VSX unter `openai.chatgpt` gelistet. Falls eine Erweiterung dort fehlt, installiere eine vom Herausgeber bereitgestellte `.vsix` über **Install Extension File…**. Siehe auch die [Codex IDE-Dokumentation](https://developers.openai.com/codex/ide/). Die Extension wird nicht mitgeliefert. Anmeldung und tatsächliche Codex-Ausführung im Desktop-Fork müssen noch auf den Zielsystemen überprüft werden.
 
 ## Beschriftungen anpassen
 
@@ -119,7 +111,7 @@ Die Ordnerstruktur ist eine Arbeitskonvention, keine technische Einschränkung d
 
 Die Änderungen liegen überwiegend in einer eigenen
 [Workbench-Contribution](src/vs/workbench/contrib/simpleUI/README.md).
-Dazu kommen ein Import, ein kleiner Explorer-Titel-Hook und die Registrierung für Übersetzungen.
+Dazu kommen ein Import, ein kleiner Explorer-Titel-Hook, die Registrierung für Übersetzungen und die Open-VSX-Konfiguration in `product.json`. Der Web-Teststarter übernimmt diese Konfiguration in die lokale, ignorierte `product.overrides.json`.
 Editor, Dateiverwaltung, Markdown-Erweiterung und Extension-Host bleiben Upstream-Komponenten.
 Das hält den Fork klein und erleichtert die Übernahme neuer Upstream-Stände.
 
@@ -127,7 +119,8 @@ Das hält den Fork klein und erleichtert die Übernahme neuer Upstream-Stände.
 
 - Browser-Setup vollständig ausgeführt; Client-Build, TypeScript-Prüfung und gezieltes ESLint bestanden.
 - Vier Regressionstests zur Wiederherstellung der Einstellungen bestanden.
-- Dateibaum, Markdown-Textansicht, Neuladen im einfachen Modus und Rückkehr zur vollständigen Oberfläche im Chromium-Browser geprüft.
+- Automatischen Start, sichtbare Activity Bar, Dateibaum, Markdown-Textansicht, Neuladen und Umschalten im Chromium-Browser geprüft.
+- Open-VSX-Katalog und die Suche nach der Codex-Erweiterung von OpenAI im Browser geprüft.
 - Tooltips, neue Markdown-Dokumente und Texteingabe geprüft; beim Moduswechsel bleibt der Text erhalten.
 - Die Markdown-Vorschau wird geöffnet, ihr Inhalt konnte in der Cloud nicht geprüft werden:
   Der dortige Browser verweigert die Service-Worker-Registrierung der eingebauten Webview.

@@ -1,8 +1,7 @@
 # Simple workspace contribution
 
 A reversible presentation layer for a document-first Code – OSS fork. Enable it with
-`workbench.simpleUI.enabled` or `workbench.simpleUI.toggle`. It defaults to off so an
-existing user's first launch retains their interface.
+`workbench.simpleUI.enabled` or `workbench.simpleUI.toggle`. It defaults to on for a new profile. A user setting of false still wins.
 
 ## Integration boundary
 
@@ -18,7 +17,7 @@ existing user's first launch retains their interface.
 The contribution uses existing layout, view, editor, configuration and extension services.
 It does not remove developer infrastructure or patch third-party extensions. Codex is
 identified by the publisher extension ID `openai.chatgpt`; its registered view container
-is moved into the auxiliary sidebar. Missing Codex gets a welcome view and VSIX install action.
+is moved into the auxiliary sidebar. Missing Codex gets a welcome view, an Open VSX catalog search, and a VSIX install action.
 
 Layout state is stored under the contribution's own workspace key
 `workbench.simpleUI.layout.v1` and survives window reloads. On leaving the mode, original
@@ -26,8 +25,7 @@ container locations, visible containers, panels and hidden Explorer views are re
 Editor preferences use a temporary memory layer. The setting itself is application scoped.
 
 Markdown preview and the visual editor reuse the built-in Markdown extension. The visual
-editor works with saved Markdown files. The standard interface remains available from
-Files and from the title bar / command palette. Welcome buttons use native hover behavior;
+editor works with saved Markdown files. The standard interface remains available from Files, the title bar, the Activity Bar settings menu, and the command palette. Welcome buttons use native hover behavior;
 the action picker also exposes explanations to keyboard users.
 
 ## Verification
@@ -45,7 +43,7 @@ For changes to service interactions, also run `npm run typecheck-client`.
 Manual acceptance: fresh profile; enable; open folder; create/edit/save Markdown; preview;
 hover explanations; reload while enabled; restore standard mode; re-enable; verify
 existing settings survive. Test desktop Codex installation, sign-in and a real task separately.
-Browser smoke checks cannot establish desktop extension compatibility.
+Browser smoke checks cannot establish desktop extension compatibility. The fork configures Open VSX in `product.json`; the browser demo copies that gallery setting into ignored `product.overrides.json`. Microsoft Visual Studio Marketplace is not bundled.
 
 ## Remaining product work
 
