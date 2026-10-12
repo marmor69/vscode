@@ -15,11 +15,20 @@ der JavaScript-Web-Teststarter, dessen Beispieldateien nur im Speicher bearbeite
    ```dotenv
    ICM_CONNECTION_TOKEN=HIER_EINEN_EIGENEN_LANGEN_TOKEN_EINTRAGEN
    ICM_INSTALL_CODEX=true
+   ICM_PUBLIC_PORT=443
    ```
 
    Der Token muss mindestens 32 Zeichen aus Buchstaben, Ziffern, `_` oder `-` haben.
    Einen passenden zufälligen Token kannst du auf deinem Rechner mit
    `openssl rand -hex 32` erzeugen. Verwende einen eigenen Token pro Installation.
+
+   `ICM_PUBLIC_PORT` ist der öffentliche Browser-Port, bei HTTPS normalerweise `443`.
+   Das Compose setzt diesen Wert bereits standardmäßig. Er überschreibt den vom Proxy
+   gemeldeten Port; der Container hört weiterhin intern auf HTTP-Port `8080`.
+   Dies ist insbesondere hinter Cloudflare Access oder einem Tunnel mit HTTP-Verbindung
+   zu Traefik wichtig: Ein intern weitergereichter Port `80` darf nicht als öffentlicher
+   WebSocket-Port verwendet werden. Bei einem anderen öffentlichen HTTPS-Port passe
+   den Wert entsprechend an.
 
 5. Lege eine HTTPS-Domain an, die auf den Service **icm-web**, Container-Port
    **8080** zeigt. Verwende eine eigene Subdomain am Pfad `/`, beispielsweise
@@ -187,6 +196,11 @@ um wieder zur einfachen Ansicht zu wechseln.
   Servermeldungen `version mismatch` und `auth mismatch` unterscheiden einen alten
   Browser-Stand von einem ungültigen Zugang. Entferne Zugangstoken aus Logs und URLs,
   bevor du diese zur Fehlerdiagnose weitergibst.
+- **WebSocket-Code 1015 / `SSL_ERROR_RX_RECORD_TOO_LONG`:** Prüfe die WebSocket-URL.
+  `wss://...:80` versucht TLS auf einem HTTP-Port. Setze für den normalen HTTPS-Zugang
+  `ICM_PUBLIC_PORT=443` und deploye den aktuellen Stand mit neuem Image-Build. Erwartet
+  wird `wss://DEINE-DOMAIN/` bzw. Port `443`. Die interne Verbindung zwischen Proxy
+  und Container bleibt HTTP auf Port `8080`; Cloudflare Access bleibt vorgeschaltet.
 - **`File not found: .../extensions/.../dist/browser/...`:** Dieser Fehler wurde im
   Docker-Build durch die zusätzliche Kompilierung der Browser-Extensions behoben.
   Deploye einen aktuellen Stand und baue das Image neu; ein Container-Neustart allein
@@ -224,6 +238,10 @@ installierte Extensions blieben nach einem Neustart erhalten.
 Zusätzlich wurden alle 20 ausgelieferten Browser-Extension-Einstiegspunkte über HTTP
 mit Status `200` geprüft, ebenso die lokale Workbench-WebSocket-Verbindung und das
 Speichern einer Datei über diese Verbindung.
+Für den Betrieb hinter mehreren Proxies wurde zusätzlich eine HTTPS-Terminierung
+mit intern weitergereichtem Port `80` nachgebildet: Die Workbench verwendete den
+konfigurierten öffentlichen Port, und der WSS-Verbindungsaufbau gelang mit aktiver
+Zertifikatsprüfung.
 
 Der verwaltete Testbrowser blockiert Service Workers; deshalb ließ sich die Codex-Webview
 dort nicht vollständig testen. Kontoanmeldung und eine KI-Aufgabe auf einer echten

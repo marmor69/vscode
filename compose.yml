@@ -11,6 +11,8 @@ services:
       # Set this in Dokploy's Environment section (at least 32 URL-safe characters).
       ICM_CONNECTION_TOKEN: ${ICM_CONNECTION_TOKEN:?Set ICM_CONNECTION_TOKEN in Dokploy}
       ICM_INSTALL_CODEX: ${ICM_INSTALL_CODEX:-true}
+      # Public HTTPS port, independent of HTTP ports between Cloudflare and Traefik.
+      ICM_PUBLIC_PORT: ${ICM_PUBLIC_PORT:-443}
     volumes:
       - icm-workspaces:/workspaces
       # Includes settings, installed extensions, Codex/Claude credentials, and npm prefix.

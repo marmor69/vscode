@@ -9,6 +9,15 @@ if [[ ! "${ICM_CONNECTION_TOKEN:-}" =~ ^[a-zA-Z0-9_-]{32,}$ ]]; then
 	exit 1
 fi
 
+public_port_args=()
+if [[ -n "${ICM_PUBLIC_PORT:-}" ]]; then
+	if [[ ! "$ICM_PUBLIC_PORT" =~ ^[1-9][0-9]{0,4}$ ]] || (( ICM_PUBLIC_PORT > 65535 )); then
+		printf '%s\n' 'ICM_PUBLIC_PORT must be a public port between 1 and 65535.' >&2
+		exit 1
+	fi
+	public_port_args=(--public-port "$ICM_PUBLIC_PORT")
+fi
+
 state_dir=/home/node/.local/share/simple-workspace
 mkdir -p "$state_dir/server" "$state_dir/extensions" /workspaces
 # Code - OSS has no redistributable Microsoft extension signature verifier.
@@ -44,4 +53,5 @@ exec "$server_node" "$server_main" \
 	--connection-token-file "$state_dir/connection-token" \
 	--enable-proposed-api openai.chatgpt \
 	--telemetry-level off \
+	"${public_port_args[@]}" \
 	"$@"

@@ -353,7 +353,7 @@ export class WebClientServer {
 		if (!remoteAuthority) {
 			return serveError(req, res, 400, `Bad request.`);
 		}
-		const forwardedPort = getFirstHeader('x-forwarded-port');
+		const forwardedPort = this._environmentService.args['public-port'] || getFirstHeader('x-forwarded-port');
 		if (forwardedPort) {
 			remoteAuthority = replacePort(remoteAuthority, forwardedPort);
 		}

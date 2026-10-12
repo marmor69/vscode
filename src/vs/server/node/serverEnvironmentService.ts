@@ -37,6 +37,7 @@ export const serverOptions: OptionDescriptions<Required<ServerParsedArgs>> = {
 
 	'host': { type: 'string', cat: 'o', args: 'ip-address', description: nls.localize('host', "The host name or IP address the server should listen to. If not set, defaults to 'localhost'.") },
 	'port': { type: 'string', cat: 'o', args: 'port | port range', description: nls.localize('port', "The port the server should listen to. If 0 is passed a random free port is picked. If a range in the format num-num is passed, a free port from the range (end inclusive) is selected.") },
+	'public-port': { type: 'string', cat: 'o', args: 'port', description: nls.localize('publicPort', "The public port used by browser connections. Overrides the port forwarded by a reverse proxy.") },
 	'socket-path': { type: 'string', cat: 'o', args: 'path', description: nls.localize('socket-path', "The path to a socket file for the server to listen to.") },
 	'server-base-path': { type: 'string', cat: 'o', args: 'path', description: nls.localize('server-base-path', "The path under which the web UI and the code server is provided. Defaults to '/'.`") },
 	'connection-token': { type: 'string', cat: 'o', args: 'token', deprecates: ['connectionToken'], description: nls.localize('connection-token', "A secret that must be included with all requests.") },
@@ -132,6 +133,7 @@ export interface ServerParsedArgs {
 	 * A port or a port range
 	 */
 	port?: string;
+	'public-port'?: string;
 	'socket-path'?: string;
 
 	/**
