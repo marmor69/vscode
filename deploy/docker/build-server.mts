@@ -63,12 +63,27 @@ process.env['VSCODE_QUALITY'] = 'stable';
 
 // The browser/server build needs no Electron native modules. Only remote/ gets its
 // lifecycle scripts, compiling the PTY, file watcher, SQLite, and other server modules.
-const installDirs = dirs.filter(directory => directory === '' || directory === 'build' || directory === 'remote' || directory === 'remote/web' || directory === 'extensions' || (directory.startsWith('extensions/') && !directory.startsWith('extensions/vscode-')));
+// compile-web also type-checks the browser test resolver, though it is not shipped.
+const installDirs = dirs.filter(directory => directory === '' || directory === 'build' || directory === 'remote' || directory === 'remote/web' || directory === 'extensions' || directory === 'extensions/vscode-test-resolver' || (directory.startsWith('extensions/') && !directory.startsWith('extensions/vscode-')));
 for (const directory of installDirs) {
 	if (existsSync(join(root, directory, 'package-lock.json'))) {
 		run(npm, ['ci', '--no-audit', '--no-fund', ...(directory === 'remote' ? [] : ['--ignore-scripts'])], join(root, directory));
 	}
 }
 run(process.execPath, ['build/npm/electronTypes.ts']);
+// REH builds Node extension targets only. Build the browser targets before its
+// packager collects dist/ so browser extension hosts receive their entry points.
+run(npm, ['run', 'gulp', 'compile-web']);
 run(npm, ['run', 'gulp', `vscode-reh-web-linux-${process.arch}`]);
-cpSync(resolve(root, `../vscode-reh-web-linux-${process.arch}`), resolve(root, '../server'), { recursive: true });
+const packagedServer = resolve(root, `../vscode-reh-web-linux-${process.arch}`);
+for (const name of readdirSync(join(packagedServer, 'extensions'))) {
+	const extensionDir = join(packagedServer, 'extensions', name);
+	const manifestPath = join(extensionDir, 'package.json');
+	if (existsSync(manifestPath)) {
+		const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { browser?: string };
+		if (manifest.browser && !existsSync(resolve(extensionDir, manifest.browser)) && !existsSync(`${resolve(extensionDir, manifest.browser)}.js`)) {
+			throw new Error(`Packaged browser extension entry point is missing: ${name}/${manifest.browser}`);
+		}
+	}
+}
+cpSync(packagedServer, resolve(root, '../server'), { recursive: true });

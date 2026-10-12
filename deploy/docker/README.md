@@ -176,6 +176,21 @@ um wieder zur einfachen Ansicht zu wechseln.
 
 - **Forbidden:** Rufe die URL einmal mit `?tkn=...` auf; prüfe den gesetzten Token.
 - **Dauerhaftes Laden / reconnect:** Prüfe Domain, Port 8080 und die WebSocket-Weiterleitung.
+- **WebSocket-Code 1006:** Der Code bedeutet einen Verbindungsabbruch, nicht dessen
+  Ursache. Schließe alte Tabs und lade nach einem Redeploy mit `Strg+Umschalt+R` neu.
+  Prüfe in den Browser-Entwicklerwerkzeugen unter **Network → WS** die tatsächlich
+  verwendete URL und den HTTP-Status: Bei einer HTTPS-Domain muss die Verbindung
+  `wss://` mit der öffentlichen Domain und ihrem öffentlichen Port verwenden.
+  `101` bedeutet, dass der Proxy das Upgrade angenommen hat; `404` weist auf Routing,
+  `502` auf den Backend-Zugang und `401/403` auf Zugangsschutz hin. Ohne HTTP-Antwort
+  kommen beispielsweise TLS-, Port- oder Browser-Verbindungsfehler infrage.
+  Servermeldungen `version mismatch` und `auth mismatch` unterscheiden einen alten
+  Browser-Stand von einem ungültigen Zugang. Entferne Zugangstoken aus Logs und URLs,
+  bevor du diese zur Fehlerdiagnose weitergibst.
+- **`File not found: .../extensions/.../dist/browser/...`:** Dieser Fehler wurde im
+  Docker-Build durch die zusätzliche Kompilierung der Browser-Extensions behoben.
+  Deploye einen aktuellen Stand und baue das Image neu; ein Container-Neustart allein
+  ersetzt die Dateien des Images nicht.
 - **Nicht schreibbare Dateien:** Prüfe die Rechte des Volumes bzw. Bind-Mounts für UID 1000.
 - **Build abgebrochen:** Prüfe den ersten Fehler im Build-Log und freien RAM/Platz.
 - **Codex-Anmeldung:** Verwende die Anmeldung innerhalb der Extension. Eine Rückleitung
@@ -206,6 +221,9 @@ Linux-Sandbox Dateien im Arbeitsordner lesen und schreiben. Im Browser wurden di
 vereinfachte Oberfläche, die Activity Bar, Codex im rechten Panel und das Speichern
 einer Markdown-Datei auf dem Server geprüft. Dokumente, Server-Einstellungen und
 installierte Extensions blieben nach einem Neustart erhalten.
+Zusätzlich wurden alle 20 ausgelieferten Browser-Extension-Einstiegspunkte über HTTP
+mit Status `200` geprüft, ebenso die lokale Workbench-WebSocket-Verbindung und das
+Speichern einer Datei über diese Verbindung.
 
 Der verwaltete Testbrowser blockiert Service Workers; deshalb ließ sich die Codex-Webview
 dort nicht vollständig testen. Kontoanmeldung und eine KI-Aufgabe auf einer echten
