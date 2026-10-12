@@ -38,6 +38,8 @@ import { Codicon } from '../../../../base/common/codicons.js';
 import { registerIcon } from '../../../../platform/theme/common/iconRegistry.js';
 import { isMouseEvent } from '../../../../base/browser/dom.js';
 import { ILogService } from '../../../../platform/log/common/log.js';
+import { SIMPLE_UI_ENABLED, SIMPLE_UI_LABELS } from '../../simpleUI/common/simpleUI.js';
+import { simpleUILabel } from '../../simpleUI/browser/simpleUILabels.js';
 
 const explorerViewIcon = registerIcon('explorer-view-icon', Codicon.files, localize('explorerViewIcon', 'View icon of the explorer view.'));
 const openEditorsViewIcon = registerIcon('open-editors-view-icon', Codicon.book, localize('openEditorsIcon', 'View icon of the open editors view.'));
@@ -176,6 +178,17 @@ export class ExplorerViewPaneContainer extends ViewPaneContainer {
 
 		this.viewletVisibleContextKey = ExplorerViewletVisibleContext.bindTo(contextKeyService);
 		this._register(this.contextService.onDidChangeWorkspaceName(e => this.updateTitleArea()));
+		this._register(configurationService.onDidChangeConfiguration(event => {
+			if (event.affectsConfiguration(SIMPLE_UI_ENABLED) || event.affectsConfiguration(SIMPLE_UI_LABELS)) {
+				this.updateTitleArea();
+			}
+		}));
+	}
+
+	override getTitle(): string {
+		return this.configurationService.getValue<boolean>(SIMPLE_UI_ENABLED)
+			? simpleUILabel(this.configurationService, 'files')
+			: super.getTitle();
 	}
 
 	override create(parent: HTMLElement): void {

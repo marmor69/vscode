@@ -247,6 +247,10 @@
 			"project": "vscode-workbench"
 		},
 		{
+			"name": "vs/workbench/contrib/simpleUI",
+			"project": "vscode-workbench"
+		},
+		{
 			"name": "vs/workbench/contrib/surveys",
 			"project": "vscode-workbench"
 		},

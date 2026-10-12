@@ -1,76 +1,144 @@
-# Visual Studio Code - Open Source ("Code - OSS")
-[![Feature Requests](https://img.shields.io/github/issues/microsoft/vscode/feature-request.svg)](https://github.com/microsoft/vscode/issues?q=is%3Aopen+is%3Aissue+label%3Afeature-request+sort%3Areactions-%2B1-desc)
-[![Bugs](https://img.shields.io/github/issues/microsoft/vscode/bug.svg)](https://github.com/microsoft/vscode/issues?utf8=✓&q=is%3Aissue+is%3Aopen+label%3Abug)
+# Simple Workspace · Dateien, Texte und Codex
 
-## The Repository
+Ein experimenteller Fork von **Code – OSS** für Menschen ohne Programmierhintergrund:
+Dateien links, das Dokument in der Mitte und die offizielle Codex-Extension rechts.
+Ziel ist eine ruhige Arbeitsumgebung für wiederverwendbare Abläufe mit überschaubarem
+Kontext in Ordnern und Markdown-Dateien.
 
-This repository ("`Code - OSS`") is where we (Microsoft) develop the [Visual Studio Code](https://code.visualstudio.com) product together with the community. Not only do we work on code and issues here, but we also publish our [roadmap](https://github.com/microsoft/vscode/wiki/Roadmap), [monthly iteration plans](https://github.com/microsoft/vscode/wiki/Iteration-Plans), and our [endgame plans](https://github.com/microsoft/vscode/wiki/Running-the-Endgame). This source code is available to everyone under the standard [MIT license](https://github.com/microsoft/vscode/blob/main/LICENSE.txt).
+![Simple Workspace mit Dateibaum, Markdown-Text und Codex-Einstieg](docs/simple-workspace/preview.png)
 
-## Visual Studio Code
+## Was dieser erste Stand kann
 
-<p align="center">
-  <img alt="VS Code in action" src="https://github.com/user-attachments/assets/56af271c-949d-454c-a3ea-16188c063414">
-</p>
+- Umschalten zwischen vollständiger Oberfläche und **Simple Workspace**.
+- Dateiverwaltung mit gut sichtbaren Aktionen und erklärenden Tooltips.
+- Texte und Markdown direkt bearbeiten; Live Preview und visuellen Markdown-Editor aufrufen.
+- Im einfachen Modus: keine Aktivitätsleiste, Statusleiste, Minimap, Zeilennummern oder
+  automatische Code-Vorschläge. Das untere Panel wird geschlossen; Outline und Timeline werden ausgeblendet.
+- Eine installierte offizielle Codex-Extension (`openai.chatgpt`) in das rechte Panel verschieben.
+  Ohne Extension erscheint eine Einführung mit Installation aus einer VSIX-Datei.
+- Beim Ausschalten die vorherige Anordnung wiederherstellen. Persönliche Editor-Einstellungen
+  werden dabei nicht überschrieben.
 
-[Visual Studio Code](https://code.visualstudio.com) is a distribution of the `Code - OSS` repository with Microsoft-specific customizations released under a traditional [Microsoft product license](https://code.visualstudio.com/License/).
+Entwicklungsfunktionen bleiben technisch vorhanden und über Befehle erreichbar.
+Die erste Version ist ein Oberflächenprototyp; es gibt noch keinen fertigen Installer.
 
-[Visual Studio Code](https://code.visualstudio.com) combines the simplicity of a code editor with what developers need for their core edit-build-debug cycle. It provides comprehensive code editing, navigation, and understanding support along with lightweight debugging, a rich extensibility model, and lightweight integration with existing tools.
+## Am einfachsten testen: im Browser
 
-Visual Studio Code is updated monthly with new features and bug fixes. You can download it for Windows, macOS, and Linux on the [Visual Studio Code website](https://code.visualstudio.com/Download). To get the latest releases every day, install the [Insiders build](https://code.visualstudio.com/insiders).
+Voraussetzungen: Git, **Node.js 24** (mindestens die Version in `.nvmrc`), npm,
+ein aktueller Chrome/Chromium oder Edge und einige GB freier Speicher.
 
-## Contributing
+```sh
+git clone --depth 1 --branch codex/simple-icm-workspace https://github.com/marmor69/vscode.git simple-workspace
+cd simple-workspace
+node scripts/simple-workspace.ts --setup
+node scripts/simple-workspace.ts --web
+```
 
-There are many ways in which you can participate in this project, for example:
+1. Öffne **http://localhost:8080**.
+2. Drücke **F1**, suche **Toggle Simple Workspace** und bestätige mit Enter.
+3. Öffne `START.md` links. Der mitgelieferte Beispielordner erklärt einen kleinen Workflow.
+4. Bearbeite einen Text; öffne **More Actions → Live Preview** für die Markdown-Vorschau.
+5. **Standard Interface** stellt die volle Oberfläche wieder her.
 
-* [Submit bugs and feature requests](https://github.com/microsoft/vscode/issues), and help us verify them as they are checked in
-* Review [source code changes](https://github.com/microsoft/vscode/pulls)
-* Review the [documentation](https://github.com/microsoft/vscode-docs) and make pull requests for anything from typos to new content.
+Das Setup installiert festgeschriebene JavaScript-Abhängigkeiten und baut die Web-Oberfläche
+samt den für diese Demo benötigten Erweiterungen. Es installiert weder Electron noch native Module.
+Es kann beim ersten Mal mehrere Minuten dauern. Nach reinen Änderungen an der Oberfläche reicht
+`npm run build-fast -- --client-only`, danach die Browserseite neu laden.
 
-If you are interested in fixing issues and contributing directly to the codebase, please see the document [How to Contribute](https://github.com/microsoft/vscode/wiki/How-to-Contribute), which covers the following:
+**Die Browser-Demo dient zum Oberflächentest.** Der eingehängte Beispielordner wird im Speicher
+bearbeitet; Änderungen werden nicht in die lokalen Beispieldateien zurückgeschrieben und können
+beim Neuladen verloren gehen. Die Desktop-Codex-Extension läuft nicht in dieser reinen Web-Demo.
+Für echte Arbeit und dauerhaft gespeicherte Dateien verwende den Desktop-Build.
 
-* [How to build and run from source](https://github.com/microsoft/vscode/wiki/How-to-Contribute)
-* [The development workflow, including debugging and running tests](https://github.com/microsoft/vscode/wiki/How-to-Contribute#debugging)
-* [Coding guidelines](https://github.com/microsoft/vscode/wiki/Coding-Guidelines)
-* [Submitting pull requests](https://github.com/microsoft/vscode/wiki/How-to-Contribute#pull-requests)
-* [Finding an issue to work on](https://github.com/microsoft/vscode/wiki/How-to-Contribute#where-to-contribute)
-* [Contributing to translations](https://aka.ms/vscodeloc)
+## Desktop mit Codex testen
 
-## Feedback
+Verwende einen eigenen Checkout für den Desktop und folge zunächst den
+[plattformabhängigen Build-Voraussetzungen von VS Code](https://github.com/microsoft/vscode/wiki/How-to-Contribute#prerequisites).
+Dazu gehören je nach System native Build-Werkzeuge und Bibliotheken.
 
-* Ask a question on [Stack Overflow](https://stackoverflow.com/questions/tagged/vscode)
-* [Request a new feature](CONTRIBUTING.md)
-* Upvote [popular feature requests](https://github.com/microsoft/vscode/issues?q=is%3Aopen+is%3Aissue+label%3Afeature-request+sort%3Areactions-%2B1-desc)
-* [File an issue](https://github.com/microsoft/vscode/issues)
-* Connect with the extension author community on [GitHub Discussions](https://github.com/microsoft/vscode-discussions/discussions) or [Slack](https://aka.ms/vscode-dev-community)
-* Follow [@code](https://x.com/code) and let us know what you think!
+```sh
+npm ci
+npm run compile
+./scripts/code.sh --user-data-dir .build/simple-workspace-user --extensions-dir .build/simple-workspace-extensions
+```
 
-See our [wiki](https://github.com/microsoft/vscode/wiki/Feedback-Channels) for a description of each of these channels and information on some other available community-driven channels.
+Unter Windows lautet der letzte Aufruf `scripts\code.bat` mit denselben Argumenten.
+Der erste Start lädt zusätzlich Electron und eingebaute Erweiterungen.
+Verwende für diesen Weg **nicht** die Installation mit `--ignore-scripts` aus dem Web-Setup.
 
-## Related Projects
+1. Aktiviere **Toggle Simple Workspace** über F1 oder setze
+   **Workbench › Simple UI: Enabled** in den Einstellungen.
+2. Besorge die offizielle Codex-VSIX über einen vom Herausgeber unterstützten Installationsweg;
+   siehe [Codex IDE-Dokumentation](https://developers.openai.com/codex/ide/).
+3. Wähle rechts **Install Extension File…**, installiere die Datei und lade bei Bedarf das Fenster neu.
+4. **Open Codex → Codex** öffnet die installierte Extension rechts. Melde dich dort an.
+5. Kopiere `examples/icm-starter` in deinen eigenen Arbeitsordner, öffne ihn über **Open Folder**
+   und folge `START.md`.
 
-Many of the core components and extensions to VS Code live in their own repositories on GitHub. For example, the [node debug adapter](https://github.com/microsoft/vscode-node-debug) and the [mono debug adapter](https://github.com/microsoft/vscode-mono-debug) repositories are separate from each other. For a complete list, please visit the [Related Projects](https://github.com/microsoft/vscode/wiki/Related-Projects) page on our [wiki](https://github.com/microsoft/vscode/wiki).
+Code – OSS hat hier keine konfigurierte Extension-Galerie. Die offizielle Extension wird weder
+mitgeliefert noch durch einen eigenen Agenten ersetzt. Installation, Anmeldung und tatsächliche
+Codex-Ausführung im Desktop-Fork müssen noch auf den Zielsystemen überprüft werden.
+Die Extension bestimmt ihre eigenen Berechtigungen, Anmeldung und Kontovoraussetzungen.
 
-## Bundled Extensions
+## Beschriftungen anpassen
 
-VS Code includes a set of built-in extensions located in the [extensions](extensions) folder, including grammars and snippets for many languages. Extensions that provide rich language support (inline suggestions, Go to Definition) for a language have the suffix `language-features`. For example, the `json` extension provides coloring for `JSON` and the `json-language-features` extension provides rich language support for `JSON`.
+Die neue Oberfläche verwendet zentral verwaltete, lokalisierbare Texte.
+Eigene Beschriftungen können jederzeit in den Benutzereinstellungen (`settings.json`) geändert werden:
 
-## Development Container
+```json
+{
+  "workbench.simpleUI.enabled": true,
+  "workbench.simpleUI.agent": "openai.chatgpt",
+  "workbench.simpleUI.labels": {
+    "files": "Meine Dateien",
+    "assistant": "Mein Assistent",
+    "newDocument": "Neuer Text",
+    "openFolder": "Ordner öffnen",
+    "more": "Weitere Aktionen",
+    "preview": "Live-Vorschau",
+    "chooseAgent": "Codex öffnen",
+    "installExtension": "Extension-Datei installieren…",
+    "standardUI": "Vollständige Oberfläche"
+  }
+}
+```
 
-This repository includes a Visual Studio Code Dev Containers / GitHub Codespaces development container.
+Die vollständigen Schlüssel und Tooltips stehen in
+[`simpleUILabels.ts`](src/vs/workbench/contrib/simpleUI/browser/simpleUILabels.ts).
+Diese Anpassung betrifft die neuen Bedienelemente; Texte innerhalb von Codex oder anderen
+Extensions werden von deren Herausgebern verwaltet. Neue Texte sind zunächst auf Englisch;
+die obigen Überschreibungen ermöglichen bereits eigene deutsche Bezeichnungen.
 
-* For [Dev Containers](https://aka.ms/vscode-remote/download/containers), use the **Dev Containers: Clone Repository in Container Volume...** command, which creates a Docker volume for better disk I/O on macOS and Windows.
-  * If you already have VS Code and Docker installed, you can also click [here](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/microsoft/vscode) to get started. This will cause VS Code to automatically install the Dev Containers extension if needed, clone the source code into a container volume, and spin up a dev container for use.
+## ICM und Architektur
 
-* For Codespaces, install the [GitHub Codespaces](https://marketplace.visualstudio.com/items?itemName=GitHub.codespaces) extension in VS Code, and use the **Codespaces: Create New Codespace** command.
+Der [Beispielordner](examples/icm-starter/START.md) trennt Auftrag/Kontext, Workflow und Ergebnis.
+Das ist zunächst eine praktische Vorlage nach der Projektbeschreibung. Der genaue Abgleich mit dem
+[bereitgestellten ICM-Guide](https://gist.github.com/LvlyBot/91c386584c99e4f3c300013d5cebaf78)
+steht noch aus, weil der Zugriff in der Cloud-Umgebung blockiert war.
+Die Ordnerstruktur ist eine Arbeitskonvention, keine technische Einschränkung des Agentenkontexts.
 
-Docker / the Codespace should have at least **4 cores and 6 GB of RAM (8 GB recommended)** to run a full build. See the [development container README](.devcontainer/README.md) for more information.
+Die Änderungen liegen überwiegend in einer eigenen
+[Workbench-Contribution](src/vs/workbench/contrib/simpleUI/README.md).
+Dazu kommen ein Import, ein kleiner Explorer-Titel-Hook und die Registrierung für Übersetzungen.
+Editor, Dateiverwaltung, Markdown-Erweiterung und Extension-Host bleiben Upstream-Komponenten.
+Das hält den Fork klein und erleichtert die Übernahme neuer Upstream-Stände.
 
-## Code of Conduct
+## Geprüfter Stand
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information, see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+- Browser-Setup vollständig ausgeführt; Client-Build, TypeScript-Prüfung und gezieltes ESLint bestanden.
+- Vier Regressionstests zur Wiederherstellung der Einstellungen bestanden.
+- Dateibaum, Markdown-Textansicht, Neuladen im einfachen Modus und Rückkehr zur vollständigen Oberfläche im Chromium-Browser geprüft.
+- Tooltips, neue Markdown-Dokumente und Texteingabe geprüft; beim Moduswechsel bleibt der Text erhalten.
+- Die Markdown-Vorschau wird geöffnet, ihr Inhalt konnte in der Cloud nicht geprüft werden:
+  Der dortige Browser verweigert die Service-Worker-Registrierung der eingebauten Webview.
+  Vorschau und visuellen Editor deshalb zusätzlich in einem lokalen Browser bzw. Desktop-Build prüfen.
+- Offizielle Codex-Anmeldung und Agentenausführung im Desktop-Fork noch nicht getestet.
 
-## License
+## Herkunft und Lizenz
 
-Copyright (c) Microsoft Corporation. All rights reserved.
-
-Licensed under the [MIT](LICENSE.txt) license.
+Dies ist ein unabhängiger experimenteller Fork von
+[Microsofts Code – OSS](https://github.com/microsoft/vscode), keine offizielle VS-Code- oder OpenAI-Distribution.
+Der Quellcode steht unter der [MIT-Lizenz](LICENSE.txt); bestehende Copyright- und
+[Drittanbieterhinweise](ThirdPartyNotices.txt) bleiben erhalten.
+Die [Upstream-Dokumentation](https://github.com/microsoft/vscode/blob/main/README.md)
+beschreibt das ursprüngliche Projekt.
