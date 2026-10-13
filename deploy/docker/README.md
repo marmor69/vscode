@@ -106,6 +106,16 @@ wird auch bei bestehenden Installationen ergänzt, sofern der Zielordner fehlt.
 Die kleinere mitgelieferte Vorlage bleibt zusätzlich unter
 `/opt/simple-workspace/examples/icm-starter` verfügbar.
 
+## Office-Dateien
+
+Die Extension `cweijan.vscode-office` wird standardmäßig automatisch installiert,
+auch beim nächsten Start bestehender Installationen. `ICM_INSTALL_OFFICE=false`
+schaltet die automatische Installation ab. Bereits installierte Extensions bleiben erhalten.
+`vscode-office.enableTelemetry` ist in der Web-App standardmäßig `false`; neue
+Serverprofile erhalten diese Einstellung zusätzlich in ihren Settings. Bestehende
+Settings-Dateien werden erhalten; explizite Nutzer- oder Workspace-Einstellungen
+können den Standard überschreiben.
+
 ## Codex und weitere Agenten
 
 Mit `ICM_INSTALL_CODEX=true` installiert der erste Start die Extension

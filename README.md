@@ -57,7 +57,8 @@ vollständigen Serverbetrieb mit [Dockerfile](Dockerfile) und [compose.yml](comp
 Die [Dokploy-Anleitung](deploy/docker/README.md) beschreibt Git-Quelle, HTTPS-Domain,
 Zugangstoken und dauerhafte Volumes. Der Server und die Extensions werden beim
 Image-Build kompiliert; Neustarts behalten Dateien, Einstellungen und Agentenanmeldung.
-Codex kann beim ersten Start automatisch installiert werden.
+Codex kann beim ersten Start automatisch installiert werden. Die Office-Erweiterung
+`cweijan.vscode-office` wird standardmäßig installiert; ihre Telemetrie ist standardmäßig deaktiviert.
 
 Dieser Weg verwendet den Code–OSS-Server mit einem Extension-Prozess im Container.
 Die JavaScript-Web-Demo oben dient weiterhin dem schnellen Oberflächentest.

@@ -32,7 +32,7 @@ mkdir -p "$state_dir/server" "$state_dir/extensions" /workspaces
 for settings_dir in User Machine; do
 	mkdir -p "$state_dir/server/data/$settings_dir"
 	if [[ ! -e "$state_dir/server/data/$settings_dir/settings.json" ]]; then
-		printf '%s\n' '{ "extensions.verifySignature": false }' > "$state_dir/server/data/$settings_dir/settings.json"
+		printf '%s\n' '{ "extensions.verifySignature": false, "vscode-office.enableTelemetry": false }' > "$state_dir/server/data/$settings_dir/settings.json"
 	fi
 done
 auth_args=(--without-connection-token)
@@ -60,13 +60,21 @@ fi
 
 server_node=/opt/simple-workspace/node
 server_main=/opt/simple-workspace/out/server-main.js
-if [[ "${ICM_INSTALL_CODEX:-false}" == true ]]; then
-	if ! "$server_node" "$server_main" --extensions-dir "$state_dir/extensions" --server-data-dir "$state_dir/server" --list-extensions 2>/dev/null | grep -qx 'openai.chatgpt'; then
-		printf '%s\n' 'Installing the official Codex extension (first start)...'
-		if ! timeout 180 "$server_node" "$server_main" --extensions-dir "$state_dir/extensions" --server-data-dir "$state_dir/server" --install-extension openai.chatgpt; then
-			printf '%s\n' 'Codex could not be installed automatically. Install it from Extensions after opening the workspace.' >&2
+install_extension() {
+	local extension_id=$1
+	if ! "$server_node" "$server_main" --extensions-dir "$state_dir/extensions" --server-data-dir "$state_dir/server" --list-extensions 2>/dev/null | grep -qx "$extension_id"; then
+		printf 'Installing %s (first start)...\n' "$extension_id"
+		if ! timeout 180 "$server_node" "$server_main" --extensions-dir "$state_dir/extensions" --server-data-dir "$state_dir/server" --install-extension "$extension_id"; then
+			printf '%s could not be installed automatically. Install it from Extensions after opening the workspace.\n' "$extension_id" >&2
 		fi
 	fi
+}
+
+if [[ "${ICM_INSTALL_CODEX:-false}" == true ]]; then
+	install_extension openai.chatgpt
+fi
+if [[ "${ICM_INSTALL_OFFICE:-true}" == true ]]; then
+	install_extension cweijan.vscode-office
 fi
 
 exec "$server_node" "$server_main" \

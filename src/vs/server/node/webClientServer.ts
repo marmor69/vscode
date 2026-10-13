@@ -419,6 +419,7 @@ export class WebClientServer {
 			_wrapWebWorkerExtHostInIframe,
 			developmentOptions: { enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined, logLevel: this._logService.getLevel() },
 			settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
+			configurationDefaults: { 'vscode-office.enableTelemetry': false },
 			enableWorkspaceTrust: !this._environmentService.args['disable-workspace-trust'],
 			enabledExtensionProposedApi: this._environmentService.args['enable-proposed-api'],
 			folderUri: resolveWorkspaceURI(this._environmentService.args['default-folder']),

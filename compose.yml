@@ -12,6 +12,7 @@ services:
       ICM_AUTH_MODE: ${ICM_AUTH_MODE:-token}
       ICM_CONNECTION_TOKEN: ${ICM_CONNECTION_TOKEN:-}
       ICM_INIT_EXAMPLE: ${ICM_INIT_EXAMPLE:-true}
+      ICM_INSTALL_OFFICE: ${ICM_INSTALL_OFFICE:-true}
       ICM_INSTALL_CODEX: ${ICM_INSTALL_CODEX:-true}
       # Public HTTPS port, independent of HTTP ports between Cloudflare and Traefik.
       ICM_PUBLIC_PORT: ${ICM_PUBLIC_PORT:-443}
