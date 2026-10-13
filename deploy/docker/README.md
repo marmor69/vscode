@@ -154,13 +154,29 @@ npm install -g @openai/codex
 codex --version
 ```
 
-Auf einem VPS empfiehlt OpenAI bei Problemen mit der Browser-Rückleitung die
-[Device-Code-Anmeldung](https://developers.openai.com/codex/auth/#login-on-headless-devices).
-Nach der CLI-Installation kannst du im Container `codex login --device-auth` aufrufen
-und den angezeigten Link auf deinem eigenen Rechner öffnen. Device-Code-Anmeldung
-muss gegebenenfalls zuerst in den ChatGPT-Sicherheitseinstellungen bzw. vom
-Workspace-Administrator aktiviert werden. Der CLI- und der Extension-Zugang nutzen
-das persistente Nutzerverzeichnis im Container.
+Auf einem VPS verwende **Use device code** in der Codex-Anmeldeansicht:
+
+1. Brich eine bereits gestartete normale Browser-Anmeldung ab und öffne Codex erneut.
+2. Wähle **Use device code** (je nach Version unter **More options**).
+3. Öffne den angezeigten Link im Browser und bestätige den angezeigten Einmalcode.
+4. Kehre zur App zurück; Codex übernimmt die Anmeldung ohne localhost-Rückleitung.
+
+OpenAI dokumentiert diesen Weg für
+[entfernte Server](https://developers.openai.com/codex/auth/#login-on-headless-devices).
+Device-Code-Anmeldung muss gegebenenfalls zuerst in den ChatGPT-Sicherheitseinstellungen
+bzw. vom Workspace-Administrator aktiviert werden.
+
+Die normale Browser-Anmeldung nutzt eine von OpenAI registrierte Loopback-Rückleitung
+(z. B. `http://localhost:1455/auth/callback`). Die offizielle Extension bietet keine
+Einstellung für eine eigene öffentliche Redirect-URL. Eine Proxy-URL als Env-Variable
+ändert diese OAuth-Rückleitung nicht. `ICM_PUBLIC_PORT` betrifft die Workbench-Verbindung,
+`ICM_AUTH_MODE=proxy` die vorgeschaltete Anmeldung an der App; beide sind unabhängig
+von der Codex-Kontoanmeldung. Veröffentliche den kurzlebigen OAuth-Callback-Server
+nicht als zusätzlichen Dokploy-Port.
+
+Falls du eine separat installierte CLI nutzt, kannst du alternativ im Container
+`codex login --device-auth` aufrufen. CLI und Extension verwenden das persistente
+Nutzerverzeichnis. Die Kontoanmeldung muss auf deiner Installation geprüft werden.
 
 Globale npm-Installationen des Nutzers landen in `/home/node/.local` und bleiben im
 Profilvolume erhalten. Claude Code kann über den vom Hersteller dokumentierten
