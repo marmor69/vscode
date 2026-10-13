@@ -13,6 +13,8 @@ services:
       ICM_CONNECTION_TOKEN: ${ICM_CONNECTION_TOKEN:-}
       ICM_INIT_EXAMPLE: ${ICM_INIT_EXAMPLE:-true}
       ICM_INSTALL_OFFICE: ${ICM_INSTALL_OFFICE:-true}
+      ICM_INSTALL_CLAUDE: ${ICM_INSTALL_CLAUDE:-true}
+      ICM_CLAUDE_VERSION: ${ICM_CLAUDE_VERSION:-latest}
       ICM_INSTALL_CODEX: ${ICM_INSTALL_CODEX:-true}
       # Official Codex VSIX release; existing installs are reconciled on startup.
       ICM_CODEX_VERSION: ${ICM_CODEX_VERSION:-26.1007.21434}

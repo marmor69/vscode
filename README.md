@@ -59,7 +59,11 @@ Zugangstoken und dauerhafte Volumes. Der Server und die Extensions werden beim
 Image-Build kompiliert; Neustarts behalten Dateien, Einstellungen und Agentenanmeldung.
 In der vereinfachten Ansicht ist „Run and Debug“ in der Activity Bar ausgeblendet.
 Codex wird bei aktivierter automatischer Installation auf die konfigurierte stabile
-Version (`ICM_CODEX_VERSION`) abgeglichen, auch bei bestehenden Installationen. Die Office-Erweiterung
+Version (`ICM_CODEX_VERSION`) abgeglichen, auch bei bestehenden Installationen.
+Claude Code wird ebenfalls standardmäßig installiert (`ICM_INSTALL_CLAUDE=true`,
+`ICM_CLAUDE_VERSION=latest`). **Choose Assistant** bietet Codex, Claude Code und
+GitHub Copilot an. Der integrierte Copilot-Chat erscheint in der vereinfachten Ansicht
+erst nach ausdrücklicher Auswahl. Die Office-Erweiterung
 `cweijan.vscode-office` wird standardmäßig installiert; ihre Telemetrie ist standardmäßig deaktiviert.
 
 Dieser Weg verwendet den Code–OSS-Server mit einem Extension-Prozess im Container.

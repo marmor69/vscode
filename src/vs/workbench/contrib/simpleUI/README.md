@@ -12,12 +12,17 @@ A reversible presentation layer for a document-first Code – OSS fork. Enable i
 - `browser/simpleUI.contribution.ts`: settings, welcome views, actions and layout restoration.
 - `test/common/simpleUI.test.ts`: restoration, changes during simple mode and repeated cycles.
 - One import in `workbench.common.main.ts`, one small title hook in `explorerViewlet.ts`,
-  and the translation resource entry in `build/lib/i18n.resources.json`.
+  the translation resource entry in `build/lib/i18n.resources.json`, and small visibility
+  conditions for Run and Debug and the integrated Chat view.
 
 The contribution uses existing layout, view, editor, configuration and extension services.
-It does not remove developer infrastructure or patch third-party extensions. Codex is
-identified by the publisher extension ID `openai.chatgpt`; its registered view container
-is moved into the auxiliary sidebar. Missing Codex gets a welcome view, an Open VSX catalog search, and a VSIX install action.
+It does not remove developer infrastructure or patch third-party extensions.
+Codex (`openai.chatgpt`) and Claude Code (`anthropic.claude-code`) are presets whose
+active conversation containers are opened in the auxiliary sidebar. Claude's primary
+and secondary sidebar views are distinguished from its session-list container.
+GitHub Copilot is an explicit preset that opens the built-in Chat container; the Chat
+views are inactive in simple mode while another assistant is selected.
+Missing extensions get a welcome view, a catalog search and a VSIX install action.
 
 Layout state is stored under the contribution's own workspace key
 `workbench.simpleUI.layout.v1` and survives window reloads. On leaving the mode, original
@@ -51,6 +56,8 @@ Browser smoke checks cannot establish desktop extension compatibility. The fork 
 - Verify the workflow templates against the supplied ICM guide.
 - Package desktop builds and test keyboard navigation, screen readers, high contrast and narrow windows.
 - Further simplify upstream Explorer menus, empty-editor startup content and extension-owned UI.
-- Add Claude Code only after the Codex path is validated.
+- Verify Claude Code account sign-in and a real agent task on the target deployment.
 
-The starter folder is an explicit example, never automatically written into a user's folder.
+The browser demo uses an explicit starter example. The Docker deployment can seed
+an external template into a new `Beispiel-Projekt` directory without replacing
+existing user files; see the deployment README.

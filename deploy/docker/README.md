@@ -16,6 +16,8 @@ der JavaScript-Web-Teststarter, dessen Beispieldateien nur im Speicher bearbeite
    ICM_CONNECTION_TOKEN=HIER_EINEN_EIGENEN_LANGEN_TOKEN_EINTRAGEN
    ICM_INSTALL_CODEX=true
    ICM_CODEX_VERSION=26.1007.21434
+   ICM_INSTALL_CLAUDE=true
+   ICM_CLAUDE_VERSION=latest
    ICM_PUBLIC_PORT=443
    ```
 
@@ -212,9 +214,33 @@ Falls du eine separat installierte CLI nutzt, kannst du alternativ im Container
 Nutzerverzeichnis. Die Kontoanmeldung muss auf deiner Installation geprüft werden.
 
 Globale npm-Installationen des Nutzers landen in `/home/node/.local` und bleiben im
-Profilvolume erhalten. Claude Code kann über den vom Hersteller dokumentierten
-Linux-Installationsweg und seine offizielle Extension ergänzt werden. Die vereinfachte
-Oberfläche richtet zunächst Codex im rechten Panel ein.
+Profilvolume erhalten. Eine zusätzliche globale Claude-Code-CLI ist optional; verwende dafür den vom
+Hersteller dokumentierten Linux-Installationsweg. Die vereinfachte
+Oberfläche bietet Codex, Claude Code und GitHub Copilot als Assistenten an.
+
+## Claude Code und Assistentenauswahl
+
+Die offizielle Extension `anthropic.claude-code` wird standardmäßig mit installiert.
+`ICM_INSTALL_CLAUDE=true` aktiviert Installation und Versionsabgleich beim Start;
+`false` schaltet dies ab und lässt bestehende Installationen erhalten.
+`ICM_CLAUDE_VERSION=latest` ermittelt bei jedem Start die neueste stabile, kompatible
+Plattformversion aus den offiziellen Veröffentlichungsmetadaten. Eine bereits
+installierte identische Version wird nicht erneut heruntergeladen. Alternativ kannst
+du eine vollständige Version festlegen, beispielsweise `ICM_CLAUDE_VERSION=2.1.296`.
+Downloads erfolgen als offizielle VSIX mit SHA-256-Prüfung wie bei Codex.
+Bei einem Netzwerkfehler startet der Server trotzdem und versucht es beim nächsten Start erneut.
+
+Wähle in der vereinfachten Ansicht **Choose Assistant → Claude Code**, um die
+Extension rechts zu öffnen. Codex bleibt zunächst vorausgewählt. Claude Code bringt
+seinen Agentenprozess mit; eine zusätzliche globale CLI ist für die Extension nicht
+nötig. Anmeldung und Kontozugang verwaltet die offizielle Extension. Ihre Dateien
+und Einstellungen liegen im persistenten Nutzerprofil. Kontoanmeldung und eine
+Agentenaufgabe müssen auf deiner Installation geprüft werden.
+
+Der integrierte **Chat** von GitHub Copilot ist in der vereinfachten Ansicht
+standardmäßig ausgeblendet. Über **Choose Assistant → GitHub Copilot** lässt er sich
+explizit auswählen. Beim Wechsel zurück zu Codex oder Claude Code wird er wieder
+ausgeblendet; in der normalen Oberfläche steht er wie gewohnt zur Verfügung.
 
 ## Lokal mit Docker testen
 
@@ -339,3 +365,11 @@ Linux-amd64-Testcontainer geprüft, einschließlich SHA-256-Verifikation, aktive
 Extension-Version und Start des gebündelten Agenten (`codex-cli 0.162.0-alpha.17.2`).
 Ein erneuter Start überspringt den Download bei identischer Version. Die konkrete
 Modellliste nach ChatGPT-Anmeldung muss auf der Nutzerinstallation geprüft werden.
+
+Zusätzlich geprüft: automatische Claude-Code-Installation in Version `2.1.296`,
+Start des mitgelieferten Agenten, erneuter Start ohne Paketdownload sowie die gemeinsame
+Codex-VSIX-Installation. Der Installer wurde mit Metadaten für stabile/Vorabversionen,
+Plattformauswahl und einer falschen Prüfsumme geprüft. Im Chromium-Browser wurden die
+drei Assistenten-Presets, Copilot als ausdrückliche Auswahl, Ausblenden beim Wechsel
+zu Claude Code und die Verfügbarkeit des Chats in der normalen Ansicht geprüft.
+Claude-Kontoanmeldung und eine Agentenaufgabe sind noch nicht verifiziert.

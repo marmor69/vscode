@@ -14,7 +14,8 @@ RUN apt-get update \
 # Gulp loads shared tooling even for a server-only build. Keep the complete source
 # tree, but changes to deployment docs/startup should not invalidate compilation.
 COPY --exclude=README.md --exclude=docs --exclude=Dockerfile --exclude=compose.yml \
-	--exclude=deploy/docker/README.md --exclude=deploy/docker/entrypoint.sh . .
+	--exclude=deploy/docker/README.md --exclude=deploy/docker/entrypoint.sh \
+	--exclude=deploy/docker/install-official-extension.mts . .
 ARG SOURCE_COMMIT
 ENV NODE_OPTIONS=--max-old-space-size=4096 GOMAXPROCS=4
 # Optional CA for environments with an HTTPS proxy; not needed on a normal VPS.
@@ -32,12 +33,15 @@ RUN apt-get update \
 # Copy and set permissions in one layer, avoiding large intermediate image layers.
 RUN --mount=type=bind,from=build,source=/build,target=/build-artifacts \
 	--mount=type=bind,source=deploy/docker/entrypoint.sh,target=/tmp/entrypoint.sh \
-	mkdir -p /opt/simple-workspace /workspaces /home/node/.local/share/simple-workspace \
+	--mount=type=bind,source=deploy/docker/install-official-extension.mts,target=/tmp/install-official-extension.mts \
+	mkdir -p /usr/local/lib/simple-workspace /opt/simple-workspace /workspaces /home/node/.local/share/simple-workspace \
 	&& cp -a /build-artifacts/server/. /opt/simple-workspace/ \
 	&& cp /build-artifacts/vscode/LICENSE.txt /build-artifacts/vscode/ThirdPartyNotices.txt /opt/simple-workspace/ \
 	&& mkdir -p /opt/simple-workspace/examples \
 	&& cp -a /build-artifacts/vscode/examples/icm-starter /opt/simple-workspace/examples/ \
 	&& cp /tmp/entrypoint.sh /usr/local/bin/simple-workspace-entrypoint \
+	&& cp /tmp/install-official-extension.mts /usr/local/lib/simple-workspace/ \
+	&& chmod 644 /usr/local/lib/simple-workspace/install-official-extension.mts \
 	&& chmod 755 /usr/local/bin/simple-workspace-entrypoint \
 	&& chmod -R a+rX /opt/simple-workspace \
 	&& chown -R node:node /workspaces /home/node

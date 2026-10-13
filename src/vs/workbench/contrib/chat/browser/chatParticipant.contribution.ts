@@ -37,6 +37,11 @@ import { MANAGED_SETTINGS_UPDATE_VIEW_ID, ManagedSettingsUpdateRequiredContext }
 
 // --- Chat Container &  View Registration
 
+const simpleUIChatAllowed = ContextKeyExpr.or(
+	ContextKeyExpr.notEquals('config.workbench.simpleUI.enabled', true),
+	ContextKeyExpr.equals('config.workbench.simpleUI.agent', 'github.copilot-chat'),
+);
+
 const chatViewIcon = registerIcon('chat-view-icon', Codicon.chatSparkle, localize('chatViewIcon', 'View icon of the chat view.'));
 
 const chatViewContainer: ViewContainer = Registry.as<IViewContainersRegistry>(ViewExtensions.ViewContainersRegistry).registerViewContainer({
@@ -71,6 +76,7 @@ const chatViewDescriptor: IViewDescriptor = {
 	},
 	ctorDescriptor: new SyncDescriptor(ChatViewPane),
 	when: ContextKeyExpr.and(
+		simpleUIChatAllowed,
 		ChatContextKeys.accountPolicyGateActive.negate(),
 		ContextKeyExpr.or(
 			ContextKeyExpr.and(
@@ -92,7 +98,7 @@ Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([{
 	canToggleVisibility: false,
 	canMoveView: false,
 	ctorDescriptor: new SyncDescriptor(ChatUpdateRequiredView),
-	when: ManagedSettingsUpdateRequiredContext,
+	when: ContextKeyExpr.and(simpleUIChatAllowed, ManagedSettingsUpdateRequiredContext),
 	openCommandActionDescriptor: {
 		id: 'workbench.action.chat.showUpdateRequired',
 		title: localize2('chat.updateRequiredView', "Chat Update Requirement"),

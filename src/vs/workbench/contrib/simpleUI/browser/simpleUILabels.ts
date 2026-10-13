@@ -18,12 +18,12 @@ const defaultLabels = {
 	visualEditor: localize('simpleUI.visualEditor', "Visual Markdown Editor"),
 	textEditor: localize('simpleUI.textEditor', "Text Editor"),
 	installExtension: localize('simpleUI.installExtension', "Install Extension File…"),
-	chooseAgent: localize('simpleUI.chooseAgent', "Open Codex"),
+	chooseAgent: localize('simpleUI.chooseAgent', "Choose Assistant"),
 	extensions: localize('simpleUI.extensions', "Extensions"),
 	settings: localize('simpleUI.settings', "Settings"),
 	standardUI: localize('simpleUI.standardUI', "Standard Interface"),
 	more: localize('simpleUI.more', "More Actions"),
-	assistantHelp: localize('simpleUI.assistantHelp', "Work with Codex in this panel. Open a workflow folder on the left, then tell Codex which instructions and context files to use. Install the official extension and sign in to get started."),
+	assistantHelp: localize('simpleUI.assistantHelp', "Work with your selected assistant in this panel. Open a workflow folder on the left, then tell Codex which instructions and context files to use. Install the official extension and sign in to get started."),
 };
 
 export type SimpleUILabel = keyof typeof defaultLabels;
@@ -45,7 +45,7 @@ const hints: Partial<Record<SimpleUILabel, string>> = {
 	preview: localize('simpleUI.hint.preview', "See formatted Markdown beside your text. The preview updates while you write."),
 	visualEditor: localize('simpleUI.hint.visualEditor', "Edit a saved Markdown document with formatting controls."),
 	textEditor: localize('simpleUI.hint.textEditor', "Edit the document as plain text, including its Markdown formatting marks."),
-	chooseAgent: localize('simpleUI.hint.chooseAgent', "Find and install Codex from Extensions, or open it in the right panel after installation. Sign in inside the extension. On a remote server, choose Use device code to sign in without a localhost callback."),
+	chooseAgent: localize('simpleUI.hint.chooseAgent', "Choose Codex, Claude Code, or GitHub Copilot and open it in the right panel. Sign in inside the selected extension. For Codex on a remote server, choose Use device code to sign in without a localhost callback."),
 	installExtension: localize('simpleUI.hint.installExtension', "Select an official extension file (.vsix) downloaded from its publisher."),
 	extensions: localize('simpleUI.hint.extensions', "Browse and install extensions from Open VSX, or manage installed extensions."),
 	settings: localize('simpleUI.hint.settings', "Change appearance, labels, and other workspace preferences."),

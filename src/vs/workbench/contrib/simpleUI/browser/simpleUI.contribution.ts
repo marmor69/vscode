@@ -36,9 +36,11 @@ const filesViewId = 'workbench.simpleUI.files';
 const assistantId = 'workbench.simpleUI.assistant';
 const snapshotKey = 'workbench.simpleUI.layout.v1';
 
-const agents = [
+const agents: readonly { id: string; label: string; viewIds?: readonly string[] }[] = [
 	{ id: 'openai.chatgpt', label: 'Codex' },
-] as const;
+	{ id: 'anthropic.claude-code', label: 'Claude Code', viewIds: ['claudeVSCodeSidebarSecondary', 'claudeVSCodeSidebar'] },
+	{ id: 'github.copilot-chat', label: 'GitHub Copilot' },
+];
 
 Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerConfiguration({
 	id: 'simpleUI',
@@ -241,7 +243,16 @@ class SimpleUIContribution extends Disposable {
 
 	private async openAgent(): Promise<void> {
 		const agentId = this.configurationService.getValue<string>(SIMPLE_UI_AGENT);
-		const container = this.viewDescriptorService.viewContainers.find(container => container.extensionId?.value.toLowerCase() === agentId);
+		if (agentId === 'github.copilot-chat') {
+			this.moveContainer('workbench.panel.chat', ViewContainerLocation.AuxiliaryBar);
+			await this.viewsService.openViewContainer('workbench.panel.chat', false);
+			return;
+		}
+		const preset = agents.find(agent => agent.id === agentId);
+		const containers = this.viewDescriptorService.viewContainers.filter(container => container.extensionId?.value.toLowerCase() === agentId);
+		const container = containers.find(container => this.viewDescriptorService.getViewContainerModel(container).activeViewDescriptors.some(view => preset?.viewIds?.includes(view.id)))
+			?? containers.find(container => this.viewDescriptorService.getViewContainerModel(container).activeViewDescriptors.length > 0)
+			?? containers[0];
 		if (container) {
 			this.moveContainer(container.id, ViewContainerLocation.AuxiliaryBar);
 			await this.viewsService.openViewContainer(container.id, false);
@@ -389,13 +400,21 @@ registerAction2(class extends Action2 {
 		const configuration = accessor.get(IConfigurationService);
 		const commands = accessor.get(ICommandService);
 		const notifications = accessor.get(INotificationService);
+		const viewDescriptors = accessor.get(IViewDescriptorService);
 		await extensions.whenInstalledExtensionsRegistered();
-		const selected = await quickInput.pick(agents.map(agent => ({
-			...agent,
-			installed: extensions.extensions.some(extension => extension.identifier.value.toLowerCase() === agent.id),
-			description: extensions.extensions.some(extension => extension.identifier.value.toLowerCase() === agent.id)
-				? localize('simpleUI.installed', "Installed") : localize('simpleUI.installRequired', "Installation Required"),
-		})), { placeHolder: localize('simpleUI.agentPlaceholder', "Choose your assistant") });
+		const items = agents.map(agent => {
+			const installed = agent.id === 'github.copilot-chat'
+				? !!viewDescriptors.getViewContainerById('workbench.panel.chat')
+				: extensions.extensions.some(extension => extension.identifier.value.toLowerCase() === agent.id);
+			return {
+				...agent,
+				installed,
+				description: agent.id === 'github.copilot-chat'
+					? localize('simpleUI.builtInChat', "Built-in Chat")
+					: installed ? localize('simpleUI.installed', "Installed") : localize('simpleUI.installRequired', "Installation Required"),
+			};
+		});
+		const selected = await quickInput.pick(items, { placeHolder: localize('simpleUI.agentPlaceholder', "Choose your assistant") });
 		if (!selected) {
 			return;
 		}
