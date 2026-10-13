@@ -106,6 +106,23 @@ wird auch bei bestehenden Installationen ergänzt, sofern der Zielordner fehlt.
 Die kleinere mitgelieferte Vorlage bleibt zusätzlich unter
 `/opt/simple-workspace/examples/icm-starter` verfügbar.
 
+## Codex-Modelle und Updates
+
+Die Modellauswahl stammt aus der offiziellen Codex-Extension und ihrem Agentenprozess;
+der Fork schränkt sie nicht ein. Verfügbare Modelle hängen von Konto, Tarif,
+Workspace-Freigaben und Client-Version ab. Aktuelle Informationen stehen in der
+[OpenAI-Modellübersicht](https://developers.openai.com/codex/models/).
+
+Ein Redeploy aktualisiert bereits installierte Extensions nicht automatisch.
+Prüfe unter **Extensions → Codex** die Version und suche über **Check for Extension
+Updates** nach Updates. Unser Katalog ist Open VSX; dessen verfügbare Versionen können
+vom Microsoft Marketplace abweichen. Alternativ kannst du eine offizielle, passende
+VSIX-Datei über **Install Extension File…** installieren. Nach dem Update lade die
+App mit **Developer: Reload Window** neu. Bleibt ein Modell unsichtbar, prüfe, ob Codex
+mit dem erwarteten ChatGPT-Konto oder einem API-Key angemeldet ist; die Freigaben
+können sich unterscheiden. Eine separate globale CLI-Installation aktualisiert
+nicht den mit der Extension gebündelten Agenten.
+
 ## Office-Dateien
 
 Die Extension `cweijan.vscode-office` wird standardmäßig automatisch installiert,

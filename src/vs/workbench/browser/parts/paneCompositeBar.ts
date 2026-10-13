@@ -220,6 +220,14 @@ export class PaneCompositeBar extends Disposable {
 	}
 
 	private registerListeners(): void {
+		this._register(this.contextKeyService.onDidChangeContext(event => {
+			if (event.affectsSome(new Set(['config.workbench.simpleUI.enabled']))) {
+				const debugContainer = this.getViewContainer('workbench.view.debug');
+				if (debugContainer) {
+					this.showOrHideViewContainer(debugContainer);
+				}
+			}
+		}));
 
 		// View Container Changes
 		this._register(this.viewDescriptorService.onDidChangeViewContainers(({ added, removed }) => this.onDidChangeViewContainers(added, removed)));
@@ -298,7 +306,7 @@ export class PaneCompositeBar extends Disposable {
 
 			if (this.shouldBeHidden(viewContainer)) {
 				const viewContainerModel = this.viewDescriptorService.getViewContainerModel(viewContainer);
-				if (viewContainerModel.activeViewDescriptors.length === 0) {
+				if (viewContainerModel.activeViewDescriptors.length === 0 || this.isHiddenInSimpleUI(viewContainer.id)) {
 					// Update the composite bar by hiding
 					this.hideComposite(viewContainer.id);
 				}
@@ -434,9 +442,17 @@ export class PaneCompositeBar extends Disposable {
 		}
 	}
 
+	private isHiddenInSimpleUI(id: string): boolean {
+		return id === 'workbench.view.debug' && this.contextKeyService.contextMatchesRules(ContextKeyExpr.equals('config.workbench.simpleUI.enabled', true));
+	}
+
 	private shouldBeHidden(viewContainerOrId: string | ViewContainer, cachedViewContainer?: ICachedViewContainer): boolean {
 		const viewContainer = isString(viewContainerOrId) ? this.getViewContainer(viewContainerOrId) : viewContainerOrId;
 		const viewContainerId = isString(viewContainerOrId) ? viewContainerOrId : viewContainerOrId.id;
+
+		if (this.isHiddenInSimpleUI(viewContainerId)) {
+			return true;
+		}
 
 		if (viewContainer) {
 			if (viewContainer.hideIfEmpty) {
