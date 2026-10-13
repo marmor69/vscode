@@ -15,6 +15,7 @@ der JavaScript-Web-Teststarter, dessen Beispieldateien nur im Speicher bearbeite
    ```dotenv
    ICM_CONNECTION_TOKEN=HIER_EINEN_EIGENEN_LANGEN_TOKEN_EINTRAGEN
    ICM_INSTALL_CODEX=true
+   ICM_CODEX_VERSION=26.1007.21434
    ICM_PUBLIC_PORT=443
    ```
 
@@ -113,15 +114,29 @@ der Fork schränkt sie nicht ein. Verfügbare Modelle hängen von Konto, Tarif,
 Workspace-Freigaben und Client-Version ab. Aktuelle Informationen stehen in der
 [OpenAI-Modellübersicht](https://developers.openai.com/codex/models/).
 
-Ein Redeploy aktualisiert bereits installierte Extensions nicht automatisch.
-Prüfe unter **Extensions → Codex** die Version und suche über **Check for Extension
-Updates** nach Updates. Unser Katalog ist Open VSX; dessen verfügbare Versionen können
-vom Microsoft Marketplace abweichen. Alternativ kannst du eine offizielle, passende
-VSIX-Datei über **Install Extension File…** installieren. Nach dem Update lade die
-App mit **Developer: Reload Window** neu. Bleibt ein Modell unsichtbar, prüfe, ob Codex
-mit dem erwarteten ChatGPT-Konto oder einem API-Key angemeldet ist; die Freigaben
-können sich unterscheiden. Eine separate globale CLI-Installation aktualisiert
-nicht den mit der Extension gebündelten Agenten.
+Codex wird mit `ICM_INSTALL_CODEX=true` beim Start auf `ICM_CODEX_VERSION` abgeglichen
+(Standard: `26.1007.21434`, offizieller stabiler Stand vom 9. Oktober 2026).
+Eine abweichende Version wird ersetzt, auch bei bestehenden Installationen. Eine
+identische Version wird nicht erneut heruntergeladen. Das Startskript lädt die
+plattformgerechte offizielle VSIX-Datei und prüft ihre SHA-256-Prüfsumme gegen die
+über HTTPS abgerufenen Veröffentlichungsmetadaten des offiziellen Marketplace.
+Bei Download-, Prüfsummen- oder Installationsfehlern bleibt der Server verfügbar;
+der nächste Start versucht es erneut. Erfolgreiche Installation wird im Serverlog gemeldet.
+
+Open VSX lieferte beim Prüfen unter `latest` die ältere Vorabversion `26.5908.31748`;
+auch sein stabiler Stand `26.908.40401` stammt vom September. Daher wird Codex gezielt
+als offizielle VSIX installiert; der allgemeine Extension-Katalog bleibt Open VSX.
+Das aktuelle Modellangebot muss nach dem Update mit deinem Konto geprüft werden.
+
+Anmeldedaten und Arbeitsdateien bleiben in ihren bestehenden Volumes.
+Mit `ICM_INSTALL_CODEX=false` verwaltest du die Codex-Version selbst; andernfalls
+wird eine manuell installierte andere Version beim nächsten Start wieder auf die
+konfigurierte Version gesetzt. Für einen anderen offiziellen Stand setze
+`ICM_CODEX_VERSION` auf dessen vollständige Versionsnummer. Eine globale CLI-Installation
+aktualisiert nicht den mit der Extension gebündelten Agenten.
+
+Andere bereits installierte Extensions werden durch einen Redeploy nicht automatisch
+aktualisiert. Nach dem Codex-Update lade die App mit **Developer: Reload Window** neu.
 
 ## Office-Dateien
 
@@ -135,12 +150,13 @@ können den Standard überschreiben.
 
 ## Codex und weitere Agenten
 
-Mit `ICM_INSTALL_CODEX=true` installiert der erste Start die Extension
-`openai.chatgpt` aus Open VSX, sofern sie noch fehlt. Die Anmeldung erfolgt anschließend
-rechts in der Extension. Ein Installationsfehler verhindert den Serverstart nicht;
-du kannst die Extension dann über **Extensions** oder aus einer offiziellen `.vsix`
-installieren. Automatische Installation lässt sich mit `ICM_INSTALL_CODEX=false`
-ausschalten. Bereits installierte Extensions bleiben erhalten.
+Mit `ICM_INSTALL_CODEX=true` installiert der Start die offizielle Extension
+`openai.chatgpt` als geprüfte VSIX in der konfigurierten Version `ICM_CODEX_VERSION`
+(Standard `26.1007.21434`), sofern sie fehlt oder abweicht. Die Anmeldung erfolgt
+anschließend rechts in der Extension. Ein Installationsfehler verhindert den Serverstart
+nicht; prüfe dann das Serverlog. Mit `ICM_INSTALL_CODEX=false` kannst du die Extension
+selbst über eine offizielle `.vsix` installieren. Bereits installierte Extensions
+und das persistente Nutzerprofil werden erhalten.
 
 Code–OSS enthält Microsofts proprietären Extension-Signaturprüfer nicht. Deshalb
 setzt der erste Start in neuen Serverprofilen `extensions.verifySignature=false`;
@@ -317,3 +333,9 @@ Proxy-Modus ohne Token, Token-Modus mit `403` ohne Anmeldung und erfolgreichem
 Cookie-Login, Ablehnung ungültiger Auth-Modi sowie Download und Erhalt des Beispiel-Projekts.
 Kontoanmeldung und eine KI-Aufgabe auf einer echten Dokploy-HTTPS-Domain sowie
 `arm64` sind noch nicht verifiziert.
+
+Der Wechsel von `26.5908.31748` zur offiziellen VSIX `26.1007.21434` wurde im
+Linux-amd64-Testcontainer geprüft, einschließlich SHA-256-Verifikation, aktiver
+Extension-Version und Start des gebündelten Agenten (`codex-cli 0.162.0-alpha.17.2`).
+Ein erneuter Start überspringt den Download bei identischer Version. Die konkrete
+Modellliste nach ChatGPT-Anmeldung muss auf der Nutzerinstallation geprüft werden.
