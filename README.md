@@ -62,6 +62,11 @@ Codex kann beim ersten Start automatisch installiert werden.
 Dieser Weg verwendet den Code–OSS-Server mit einem Extension-Prozess im Container.
 Die JavaScript-Web-Demo oben dient weiterhin dem schnellen Oberflächentest.
 
+Hinter Cloudflare Access kann der Docker-Server mit `ICM_AUTH_MODE=proxy` ohne
+zusätzlichen URL-Token betrieben werden. Standardmäßig wird die externe ICM-Vorlage
+als **Beispiel-Projekt** angelegt (`ICM_INIT_EXAMPLE=false` schaltet dies ab).
+Details stehen in der [Dokploy-Anleitung](deploy/docker/README.md).
+
 ## Desktop mit Codex testen
 
 Verwende einen eigenen Checkout für den Desktop und folge zunächst den
@@ -138,7 +143,8 @@ Das hält den Fork klein und erleichtert die Übernahme neuer Upstream-Stände.
 - Die Markdown-Vorschau wird geöffnet, ihr Inhalt konnte in der Cloud nicht geprüft werden:
   Der dortige Browser verweigert die Service-Worker-Registrierung der eingebauten Webview.
   Vorschau und visuellen Editor deshalb zusätzlich in einem lokalen Browser bzw. Desktop-Build prüfen.
-- Offizielle Codex-Anmeldung und Agentenausführung im Desktop-Fork noch nicht getestet.
+- Codex-Anmeldeoberfläche im Docker-Webserver mit korrigierter Webview-CDN-Version in Chromium geladen.
+- Offizielle Codex-Kontoanmeldung und Agentenausführung im Desktop-Fork noch nicht getestet.
 
 ## Herkunft und Lizenz
 

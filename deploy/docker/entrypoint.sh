@@ -4,10 +4,16 @@
 set -euo pipefail
 umask 077
 
-if [[ ! "${ICM_CONNECTION_TOKEN:-}" =~ ^[a-zA-Z0-9_-]{32,}$ ]]; then
-	printf '%s\n' 'Set ICM_CONNECTION_TOKEN to at least 32 characters using letters, numbers, _ or -.' >&2
-	exit 1
-fi
+case "${ICM_AUTH_MODE:-token}" in
+	token)
+		if [[ ! "${ICM_CONNECTION_TOKEN:-}" =~ ^[a-zA-Z0-9_-]{32,}$ ]]; then
+			printf '%s\n' 'Set ICM_CONNECTION_TOKEN to at least 32 characters using letters, numbers, _ or -.' >&2
+			exit 1
+		fi
+		;;
+	proxy) ;;
+	*) printf '%s\n' 'ICM_AUTH_MODE must be token or proxy.' >&2; exit 1 ;;
+esac
 
 public_port_args=()
 if [[ -n "${ICM_PUBLIC_PORT:-}" ]]; then
@@ -29,9 +35,28 @@ for settings_dir in User Machine; do
 		printf '%s\n' '{ "extensions.verifySignature": false }' > "$state_dir/server/data/$settings_dir/settings.json"
 	fi
 done
-printf '%s' "$ICM_CONNECTION_TOKEN" > "$state_dir/connection-token"
+auth_args=(--without-connection-token)
+if [[ "${ICM_AUTH_MODE:-token}" == token ]]; then
+	printf '%s' "$ICM_CONNECTION_TOKEN" > "$state_dir/connection-token"
+	auth_args=(--connection-token-file "$state_dir/connection-token")
+fi
 # Keep the web login token out of agent/terminal process environments.
 unset ICM_CONNECTION_TOKEN
+
+# Clone into a temporary sibling first: interrupted downloads must not become templates.
+if [[ "${ICM_INIT_EXAMPLE:-true}" == true && ! -e /workspaces/Beispiel-Projekt ]]; then
+	example_tmp=$(mktemp -d /workspaces/.icm-example.XXXXXX)
+	printf '%s\n' 'Preparing Beispiel-Projekt from RinDig/Interpretable-Context-Methodology...'
+	if timeout 180 git clone --depth 1 https://github.com/RinDig/Interpretable-Context-Methodology.git "$example_tmp"; then
+		mv -T -n "$example_tmp" /workspaces/Beispiel-Projekt
+	else
+		printf '%s\n' 'Example project could not be downloaded; the next start will retry.' >&2
+	fi
+	# Only remove the temporary directory created by this invocation.
+	if [[ -d "$example_tmp" ]]; then
+		rm -r -- "$example_tmp"
+	fi
+fi
 
 server_node=/opt/simple-workspace/node
 server_main=/opt/simple-workspace/out/server-main.js
@@ -50,7 +75,7 @@ exec "$server_node" "$server_main" \
 	--server-data-dir "$state_dir/server" \
 	--extensions-dir "$state_dir/extensions" \
 	--default-folder /workspaces \
-	--connection-token-file "$state_dir/connection-token" \
+	"${auth_args[@]}" \
 	--enable-proposed-api openai.chatgpt \
 	--telemetry-level off \
 	"${public_port_args[@]}" \

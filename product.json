@@ -43,7 +43,7 @@
 	"electronArtifactFeed": "",
 	"urlProtocol": "code-oss",
 	"agentsTelemetryAppName": "agents",
-	"webviewContentExternalBaseUrlTemplate": "https://{{uuid}}.vscode-cdn.net/insider/ef65ac1ba57f57f2a3961bfe94aa20481caca4c6/out/vs/workbench/contrib/webview/browser/pre/",
+	"webviewContentExternalBaseUrlTemplate": "https://{{uuid}}.vscode-cdn.net/insider/e9eaf94e8bb01badde47d2518e16d3e1cdab1dd9/out/vs/workbench/contrib/webview/browser/pre/",
 	"builtInExtensions": [
 		{
 			"name": "ms-vscode.js-debug-companion",

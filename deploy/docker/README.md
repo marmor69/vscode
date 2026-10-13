@@ -22,6 +22,13 @@ der JavaScript-Web-Teststarter, dessen Beispieldateien nur im Speicher bearbeite
    Einen passenden zufälligen Token kannst du auf deinem Rechner mit
    `openssl rand -hex 32` erzeugen. Verwende einen eigenen Token pro Installation.
 
+   **Hinter Cloudflare Access ohne zusätzlichen Token:** Setze stattdessen
+   `ICM_AUTH_MODE=proxy`. `ICM_CONNECTION_TOKEN` kann dann entfallen; öffne die
+   normale HTTPS-Adresse ohne `?tkn=…`. Cloudflare Access muss die gesamte Domain
+   einschließlich WebSockets schützen, und der Container darf nicht direkt öffentlich
+   erreichbar sein. Der Server prüft in diesem Modus selbst keine Anmeldung.
+   Mit `ICM_AUTH_MODE=token` (Standard) ist der Token weiterhin erforderlich.
+
    `ICM_PUBLIC_PORT` ist der öffentliche Browser-Port, bei HTTPS normalerweise `443`.
    Das Compose setzt diesen Wert bereits standardmäßig. Er überschreibt den vom Proxy
    gemeldeten Port; der Container hört weiterhin intern auf HTTP-Port `8080`.
@@ -35,7 +42,7 @@ der JavaScript-Web-Teststarter, dessen Beispieldateien nur im Speicher bearbeite
    `https://icm.example.org`. Dokploy/Traefik muss WebSockets weiterleiten.
 6. Deploye den Service. Der erste Build kompiliert den Server und seine Extensions
    und dauert erheblich länger als ein Container-Neustart.
-7. Öffne beim ersten Zugriff:
+7. Öffne im Token-Modus beim ersten Zugriff:
 
    ```text
    https://icm.example.org/?tkn=DEIN_TOKEN
@@ -84,15 +91,20 @@ oder ein Deployment unter einem neuen Compose-Projektnamen können die bisherige
 Daten entfernen bzw. andere Volumes verwenden.
 
 Die VS-Code-Dateiverwaltung und der Agent sehen dieselben Dateien unter `/workspaces`.
-Es wird kein Arbeitsordner automatisch mit Beispieldateien überschrieben. Falls du
-die Vorlage verwenden möchtest, öffne die Dokploy-Container-Shell oder führe aus:
+Beim ersten Start wird
+[`RinDig/Interpretable-Context-Methodology`](https://github.com/RinDig/Interpretable-Context-Methodology)
+als **`/workspaces/Beispiel-Projekt`** geklont. Das ist eine Vorlage zum Ausprobieren;
+lege für eigene Arbeit einen eigenen Ordner an. Über **Open Folder** kannst du das
+Beispiel-Projekt gezielt öffnen und dadurch den Kontext des Agenten darauf begrenzen.
+Prüfe die Vorlage, bevor du ihr Workspace-Vertrauen erteilst.
 
-```sh
-docker compose exec icm-web bash
-cp -R /opt/simple-workspace/examples/icm-starter /workspaces/mein-erster-workflow
-```
+Ein vorhandenes `Beispiel-Projekt` wird weder überschrieben noch automatisch aktualisiert.
+Mit `ICM_INIT_EXAMPLE=false` lässt sich der Download abschalten. Bei einem Netzwerkfehler
+startet die App trotzdem; der nächste Start versucht den Download erneut. Die Vorlage
+wird auch bei bestehenden Installationen ergänzt, sofern der Zielordner fehlt.
 
-Wähle den neuen Ordner anschließend über **Open Folder** in der App.
+Die kleinere mitgelieferte Vorlage bleibt zusätzlich unter
+`/opt/simple-workspace/examples/icm-starter` verfügbar.
 
 ## Codex und weitere Agenten
 
@@ -216,6 +228,16 @@ um wieder zur einfachen Ansicht zu wechseln.
   AppArmor-Profil. OpenAI beschreibt die
   [Linux-Voraussetzungen](https://developers.openai.com/codex/concepts/sandboxing#prerequisites).
   Ein Docker-Image kann diese Host-Einstellungen nicht selbst ändern.
+- **`renderer_ready_timeout` / leere Codex-Ansicht:** Ein alter CDN-Stand der
+  VS-Code-Webview konnte den vom Fork erwarteten Handshake nicht liefern. Die
+  Produktkonfiguration verwendet jetzt den passenden, fest gepinnten Stand
+  `e9eaf94e8bb01badde47d2518e16d3e1cdab1dd9`. Baue das Image neu und lade die Seite
+  mit **Strg+Umschalt+R** neu. Die Browser-Netzwerkanalyse sollte Webview-Dateien
+  unter `https://<kennung>.vscode-cdn.net/insider/e9eaf94…/` laden.
+  Bei weiteren Problemen prüfe **Ansicht → Ausgabe → Codex**, **Log (Remote Extension
+  Host)** und die Browser-Konsole der App. `Initialize received` bestätigt den Start
+  des Agentenprozesses, aber noch nicht den Start der Webview. Eine `401` beim Laden
+  des Featured-Plugin-Katalogs vor der Anmeldung ist ein separates Problem.
 - **Leere Codex-Ansicht / Service-Worker-Fehler:** Verwende HTTPS und einen Browser,
   dessen Einstellungen Service Workers und die Webview-Ressourcen erlauben.
 
@@ -243,6 +265,12 @@ mit intern weitergereichtem Port `80` nachgebildet: Die Workbench verwendete den
 konfigurierten öffentlichen Port, und der WSS-Verbindungsaufbau gelang mit aktiver
 Zertifikatsprüfung.
 
-Der verwaltete Testbrowser blockiert Service Workers; deshalb ließ sich die Codex-Webview
-dort nicht vollständig testen. Kontoanmeldung und eine KI-Aufgabe auf einer echten
-Dokploy-HTTPS-Domain sowie `arm64` sind noch nicht verifiziert.
+Nach Aktualisierung der Webview-CDN-Version wurde die Codex-Anmeldeoberfläche in
+Chromium erfolgreich geladen („Sign in with ChatGPT“, „Use API Key“, „Use device code“).
+Dafür wurden im vorhandenen Testimage der Startskript und die eingebettete
+Produktkonfiguration aktualisiert; ein erneuter vollständiger Quellcode-Build wurde
+für diese Konfigurationsänderung nicht durchgeführt. Ebenfalls geprüft: Zugriff im
+Proxy-Modus ohne Token, Token-Modus mit `403` ohne Anmeldung und erfolgreichem
+Cookie-Login, Ablehnung ungültiger Auth-Modi sowie Download und Erhalt des Beispiel-Projekts.
+Kontoanmeldung und eine KI-Aufgabe auf einer echten Dokploy-HTTPS-Domain sowie
+`arm64` sind noch nicht verifiziert.
