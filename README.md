@@ -21,6 +21,10 @@ Kontext in Ordnern und Markdown-Dateien.
 Entwicklungsfunktionen bleiben technisch vorhanden und über Befehle erreichbar.
 Die erste Version ist ein Oberflächenprototyp; es gibt noch keinen fertigen Installer.
 
+Der [Plan für die Smartphone-Oberfläche](docs/simple-workspace/mobile-ui-plan.md)
+beschreibt eine responsive Ansicht mit umschaltbaren Screens und eine spätere optionale PWA.
+Das ist ein Entwurf; die mobile Oberfläche ist noch nicht implementiert.
+
 ## Am einfachsten testen: im Browser
 
 Voraussetzungen: Git, **Node.js 24** (mindestens die Version in `.nvmrc`), npm,
