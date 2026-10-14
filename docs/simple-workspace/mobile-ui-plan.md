@@ -1,7 +1,42 @@
 # Plan: Simple Workspace auf Smartphones
 
-Stand: 14. Oktober 2026. **Entwurf, keine Implementierung.** Die genannten Einstellungen,
-Dateien und Verhaltensweisen sind Vorschläge, soweit nicht ausdrücklich als Bestand bezeichnet.
+Stand: 14. Oktober 2026. **Plan mit erstem implementiertem Prototyp.**
+Der folgende Status trennt den erreichten Stand vom weiterhin geplanten Zielbild.
+
+## Umsetzungsstand: erstes Inkrement
+
+Implementiert sind Ein-Screen-Layout, Navigation, `auto/on/off`, ein Menü für weitere
+Ansichten und Aktionen, Markdown-Vorschau im selben Bereich, Wiederherstellung der
+Desktop-Panels samt Breiten und gerätelokales Merken des zuletzt gewählten Screens.
+Ein neuer Layout-Service-Hook ändert die Grid-Sichtbarkeit vorübergehend, ohne die
+Desktop-Sichtbarkeiten im State-Modell zu überschreiben. Die mobile Contribution hält
+Pane-Breiten vor dem Komprimieren des Desktop-Grids fest. VisualViewport und Safe-Area
+werden berücksichtigt; Pinch-Zoom wird im mobilen Modus nicht per Meta-Tag gesperrt.
+
+Damit sind wesentliche Teile aus Phase 1 und 2 vorhanden. **Das Entscheidungstor von
+Phase 1 ist noch nicht vollständig bestanden:** Tests mit realen iOS-/Android-Geräten,
+Codex-/Claude-Anmeldung, Agentenaufträgen und Chatentwurf-Erhalt stehen aus. Bisherige
+Browser-Smokes prüfen die Assistentenfläche mit dem eingebauten Einstiegsbildschirm,
+nicht mit angemeldeten offiziellen Agenten. Es wurde für dieses Inkrement kein neues
+Produktions-Docker-Image gebaut oder auf dem VPS bereitgestellt.
+
+Bewusst noch offen sind größere Touch-Ziele und Datei-Aktionsmenüs, die komplette
+mobile Dialog-/Einstellungsüberarbeitung, ein Markdown-Bearbeiten/Vorschau-Umschalter,
+mobile Behandlung mehrerer Editorgruppen, Barrierefreiheitsprüfung auf Geräten,
+Reconnect-/Hintergrundtests und PWA. Unter „Mehr“ sind bereits viele bestehende
+Funktionen erreichbar; ihre Innenansichten behalten zunächst das Upstream-Layout.
+Automatik richtet sich zunächst allein nach Breite; für breites Smartphone-Querformat
+steht `on` bereit. Layoutbefehle außerhalb der mobilen Navigation und komplexe
+Extension-Workflows benötigen weitere Integrationsprüfungen.
+
+Wiederholbarer Browser-Smoke: `scripts/test-simple-mobile.mts` gegen die englische
+Browser-Demo mit `examples/icm-starter`. Er prüft die drei Screens, Texteingabe und
+Text-Erhalt, 320–790 CSS-Pixel, Desktop-Wiederherstellung einschließlich Pane-Breiten,
+Standardmodus, Reload, Dateiöffnung, Markdown-Vorschau, Suche und Einstellungen.
+Er ersetzt weder echte Touch-Geräte noch den Docker-Server mit Remote Extension Host.
+
+Die folgenden Abschnitte beschreiben weiterhin das **Zielbild**, nicht den vollständig
+abgenommenen Funktionsumfang.
 
 ## Empfehlung und Architekturentscheidung
 
@@ -259,5 +294,5 @@ Abnahme des ersten mobilen Stands:
 Ohne weitere Vorgaben mit drei Hauptzielen „Dateien / Dokument / Assistent“, einem
 „Mehr“-Menü, automatischer Erkennung und manuellem Override beginnen. Tablet-Split-
 Layouts, optionale Wischgesten, PWA-Installation und native Gerätefunktionen folgen
-nach dem stabilen Smartphone-Kern. Dieser Plan setzt noch keine dieser Entscheidungen
-im Produkt um.
+nach dem stabilen Smartphone-Kern. Der Status am Anfang dieses Dokuments hält fest, welche Teile davon bereits
+im Produkt umgesetzt und welche weiterhin offen sind.

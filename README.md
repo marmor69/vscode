@@ -22,8 +22,24 @@ Entwicklungsfunktionen bleiben technisch vorhanden und über Befehle erreichbar.
 Die erste Version ist ein Oberflächenprototyp; es gibt noch keinen fertigen Installer.
 
 Der [Plan für die Smartphone-Oberfläche](docs/simple-workspace/mobile-ui-plan.md)
-beschreibt eine responsive Ansicht mit umschaltbaren Screens und eine spätere optionale PWA.
-Das ist ein Entwurf; die mobile Oberfläche ist noch nicht implementiert.
+beschreibt die Umsetzungsschritte und eine spätere optionale PWA.
+Ein erster mobiler Prototyp ist jetzt enthalten: In schmalen Fenstern zeigt die einfache
+Ansicht jeweils **Dateien**, **Dokument** oder **Assistent**, mit fester Navigation am
+unteren Rand. **Mehr** öffnet Dokumentaktionen, Suche, Einstellungen und die Ansichten
+installierter Erweiterungen. Markdown-Vorschauen öffnen im selben Bereich.
+
+Über die Einstellung `workbench.simpleUI.mobileLayout` kannst du das Verhalten steuern:
+`auto` (Standard: unter 768 CSS-Pixeln, Rückkehr ab 800), `on` (immer ein Screen) oder
+`off` (Desktoplayout). Für Smartphone-Querformat kann zunächst `on` sinnvoll sein.
+Die Einstellung gilt pro Gerät und nur innerhalb der einfachen Ansicht.
+Beim Vergrößern des Fensters wird das Desktoplayout wiederhergestellt.
+
+**Noch kein fertig abgenommenes Smartphone-Produkt:** Die Browserprüfung deckt Layout,
+Navigation und einfache Texte ab. Echte iOS-/Android-Tastaturen, Agentenanmeldung und
+Agentenaufträge auf Smartphones stehen noch aus. Mehrere Editorgruppen, größere
+Touch-Ziele im Dateibaum und die vollständige mobile Überarbeitung von Dialogen und
+Extension-Oberflächen folgen. Eine PWA ist noch nicht implementiert.
+Für Dokploy muss das Image nach dem Update neu gebaut und bereitgestellt werden.
 
 ## Am einfachsten testen: im Browser
 

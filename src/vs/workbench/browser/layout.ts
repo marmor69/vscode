@@ -157,6 +157,10 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 
 	declare readonly _serviceBrand: undefined;
 
+	private singlePartLayout: { part: Parts; bottomInset: number; availableHeight?: number } | undefined;
+	private singlePartSnapshot: { part: Part; visible: boolean; size: IViewSize }[] | undefined;
+	private inSinglePartTransition = false;
+
 	//#region Events
 
 	private readonly _onDidChangeZenMode = this._register(new Emitter<boolean>());
@@ -359,6 +363,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		// Restore editor if hidden and an editor is to show
 		const showEditorIfHidden = (explicitUserAction?: boolean) => {
 			if (
+				!!this.singlePartLayout ||
 				this.isVisible(Parts.EDITOR_PART, mainWindow) ||		// already visible
 				this.mainPartEditorService.visibleEditors.length === 0	// no editor to show
 			) {
@@ -1367,6 +1372,10 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			return true; // cannot hide editor part in auxiliary windows
 		}
 
+		if (this.singlePartLayout && targetWindow === mainWindow) {
+			return part === this.singlePartLayout.part;
+		}
+
 		switch (part) {
 			case Parts.TITLEBAR_PART:
 				return this.initialized ?
@@ -1686,7 +1695,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 
 		for (const part of [titleBar, editorPart, activityBar, panelPart, sideBar, statusBar, auxiliaryBarPart, bannerPart]) {
 			this._register(part.onDidVisibilityChange(visible => {
-				if (!this.inMaximizedAuxiliaryBarTransition) {
+				if (!this.inMaximizedAuxiliaryBarTransition && !this.singlePartLayout && !this.inSinglePartTransition) {
 
 					// skip reacting when we are transitioning
 					// in or out of maximised auxiliary bar to prevent
@@ -1719,6 +1728,17 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		}));
 
 		this._register(this.storageService.onWillSaveState(() => {
+
+			// Keep desktop sizes while a temporary single-part presentation is active.
+			if (this.singlePartSnapshot) {
+				const savedSize = (id: Parts) => this.singlePartSnapshot!.find(entry => entry.part.getId() === id)!.size;
+				this.stateModel.setInitializationValue(LayoutStateKeys.SIDEBAR_SIZE, savedSize(Parts.SIDEBAR_PART).width);
+				this.stateModel.setInitializationValue(LayoutStateKeys.AUXILIARYBAR_SIZE, savedSize(Parts.AUXILIARYBAR_PART).width);
+				const panelSize = savedSize(Parts.PANEL_PART);
+				this.stateModel.setInitializationValue(LayoutStateKeys.PANEL_SIZE, isHorizontal(this.getPanelPosition()) ? panelSize.height : panelSize.width);
+				this.stateModel.save(true, true);
+				return;
+			}
 
 			// Side Bar Size
 			const sideBarSize = this.stateModel.getRuntimeValue(LayoutStateKeys.SIDEBAR_HIDDEN)
@@ -1763,7 +1783,10 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 			size(this.mainContainer, this._mainContainerDimension.width, this._mainContainerDimension.height);
 
 			// Layout the grid widget
-			this.workbenchGrid.layout(this._mainContainerDimension.width, this._mainContainerDimension.height);
+			const height = this.singlePartLayout
+				? Math.max(0, Math.min(this._mainContainerDimension.height, this.singlePartLayout.availableHeight ?? this._mainContainerDimension.height) - this.singlePartLayout.bottomInset)
+				: this._mainContainerDimension.height;
+			this.workbenchGrid.layout(this._mainContainerDimension.width, height);
 			this.initialized = true;
 
 			// Emit as event
@@ -2178,6 +2201,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 
 	setAuxiliaryBarMaximized(maximized: boolean): boolean {
 		if (
+			!!this.singlePartLayout ||
 			this.inMaximizedAuxiliaryBarTransition ||		// prevent re-entrance
 			(maximized === this.isAuxiliaryBarMaximized())	// return early if state is already present
 		) {
@@ -2328,7 +2352,68 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 		}
 	}
 
+	setSinglePartLayout(part: Parts | undefined, bottomInset = 0, availableHeight?: number, restoreSizes?: ReadonlyMap<Parts, IViewSize>): void {
+		if (this.disposed || !this.workbenchGrid || this.inSinglePartTransition) {
+			return;
+		}
+		if (!part && !this.singlePartSnapshot) {
+			return;
+		}
+		this.inSinglePartTransition = true;
+		try {
+			if (part) {
+				this.singlePartSnapshot ??= [Parts.TITLEBAR_PART, Parts.BANNER_PART, Parts.ACTIVITYBAR_PART,
+					Parts.SIDEBAR_PART, Parts.EDITOR_PART, Parts.AUXILIARYBAR_PART, Parts.PANEL_PART, Parts.STATUSBAR_PART]
+					.map(id => {
+						const view = this.getPart(id);
+						const size = { ...this.workbenchGrid.getViewSize(view) };
+						const cached = this.workbenchGrid.getViewCachedVisibleSize(view);
+						if (cached !== undefined) {
+							if (id === Parts.PANEL_PART && isHorizontal(this.getPanelPosition())) {
+								size.height = cached;
+							} else {
+								size.width = cached;
+							}
+						}
+						return { part: view, visible: this.workbenchGrid.isViewVisible(view), size: restoreSizes?.get(id) ?? size };
+					});
+				this.singlePartLayout = { part, bottomInset, availableHeight };
+				// Show the destination before hiding the others; never leave an empty grid.
+				this.workbenchGrid.setViewVisible(this.getPart(part), true);
+				for (const entry of this.singlePartSnapshot) {
+					if (entry.part.getId() !== part) {
+						this.workbenchGrid.setViewVisible(entry.part, false);
+					}
+				}
+			} else {
+				this.singlePartLayout = undefined;
+				const snapshot = this.singlePartSnapshot!;
+				for (const entry of snapshot.filter(entry => entry.visible)) {
+					this.workbenchGrid.setViewVisible(entry.part, true);
+				}
+				for (const entry of snapshot) {
+					this.workbenchGrid.setViewVisible(entry.part, entry.visible);
+				}
+				this.layout();
+				// Restore the surrounding panes; let the editor consume the remaining
+				// space instead of successively resizing every row and column.
+				for (const entry of snapshot) {
+					if (entry.visible && [Parts.SIDEBAR_PART, Parts.AUXILIARYBAR_PART, Parts.PANEL_PART].includes(entry.part.getId() as Parts)) {
+						this.workbenchGrid.resizeView(entry.part, entry.size);
+					}
+				}
+				this.singlePartSnapshot = undefined;
+			}
+			this.layout();
+		} finally {
+			this.inSinglePartTransition = false;
+		}
+	}
+
 	setPartHidden(hidden: boolean, part: Parts): void {
+		if (this.singlePartLayout) {
+			return; // Navigation owns visibility; background extension activity must not switch screens.
+		}
 		switch (part) {
 			case Parts.ACTIVITYBAR_PART:
 				return this.setActivityBarHidden(hidden);

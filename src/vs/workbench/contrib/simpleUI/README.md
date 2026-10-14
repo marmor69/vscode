@@ -61,3 +61,45 @@ Browser smoke checks cannot establish desktop extension compatibility. The fork 
 The browser demo uses an explicit starter example. The Docker deployment can seed
 an external template into a new `Beispiel-Projekt` directory without replacing
 existing user files; see the deployment README.
+
+## Mobile prototype
+
+`workbench.simpleUI.mobileLayout` defaults to `auto` (enter below 768 CSS pixels,
+leave at 800); `on` forces one screen and `off` retains desktop presentation.
+The preference is machine-scoped. `browser/mobile/simpleMobileLayout.ts` owns the
+navigation and screen selection, using the existing view/editor services. Its own
+workspace key `workbench.simpleUI.mobileScreen.v1` remembers the last screen.
+Explicit editor-opening events switch to Document after user interaction; startup
+restoration and events marked non-explicit do not override the chosen screen.
+
+The optional `IWorkbenchLayoutService.setSinglePartLayout` capability is the core
+integration boundary, implemented in `workbench/browser/layout.ts`. It temporarily
+changes grid visibility and reserves navigation/keyboard space. It suppresses the
+desktop editor/panel visibility invariant during that presentation, retains a snapshot,
+and preserves desktop sizes when saving state. The mobile controller supplies the last
+wide-window pane sizes because the grid can shrink before a window resize is delivered.
+Leaving mobile mode restores the snapshot before Simple UI restores standard mode.
+Other workbench hosts without this capability do not activate this contribution.
+
+After an upstream merge, specifically review grid visibility notifications, the
+editor auto-reveal listener, layout sizing and persistence, and sidebar maximization.
+Do not add dependencies from Workbench to the separate Sessions mobile workbench.
+
+For the repeatable English browser-demo smoke (requires Playwright Chromium installed):
+
+```sh
+npm run build-fast -- --client-only
+node scripts/code-web.js examples/icm-starter --host localhost --port 32190 --browserType none
+# In another terminal:
+node scripts/test-simple-mobile.mts
+```
+
+The smoke uses a fresh browser profile and does not save changes to the sample files.
+It checks navigation, text retention, widths, desktop pane-size restoration, standard
+mode, reload, file opening, Markdown preview, Search and Settings. Normal asynchronous
+workbench storage is allowed to flush before the reload assertion.
+
+Actual iOS/Android keyboards, accessibility, authenticated Codex/Claude tasks, webview
+draft retention, network interruption and multiple editor groups remain unverified.
+The mobile prototype does not resize virtualized Explorer rows using CSS and does not
+patch third-party webviews. See the root mobile plan for the remaining milestones.

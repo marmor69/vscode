@@ -1,0 +1,53 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.monaco-workbench .simple-mobile-navigation {
+	position: absolute;
+	inset-inline: 0;
+	bottom: 0;
+	z-index: 35;
+	display: flex;
+	padding: 4px max(4px, env(safe-area-inset-right)) max(4px, env(safe-area-inset-bottom)) max(4px, env(safe-area-inset-left));
+	box-sizing: border-box;
+	border-top: 1px solid var(--vscode-panel-border);
+	background: var(--vscode-sideBar-background);
+	color: var(--vscode-sideBar-foreground);
+}
+
+.monaco-workbench .simple-mobile-navigation[hidden] {
+	display: none;
+}
+
+.monaco-workbench .simple-mobile-navigation button {
+	flex: 1;
+	min-width: 0;
+	min-height: 48px;
+	padding: 4px;
+	border: 0;
+	border-radius: var(--vscode-cornerRadius-small);
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	white-space: normal;
+	cursor: pointer;
+}
+
+.monaco-workbench .simple-mobile-navigation button[aria-pressed="true"] {
+	background: var(--vscode-list-activeSelectionBackground);
+	color: var(--vscode-list-activeSelectionForeground);
+}
+
+.monaco-workbench .simple-mobile-navigation button:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -2px;
+}
+
+.monaco-workbench.simple-mobile-layout .quick-input-widget {
+	max-width: calc(100% - 16px);
+}
+
+.monaco-workbench.simple-mobile-layout .part > .content {
+	min-width: 0;
+}

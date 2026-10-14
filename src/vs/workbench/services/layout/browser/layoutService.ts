@@ -598,6 +598,13 @@ export interface IWorkbenchLayoutService extends ILayoutService {
 	 */
 	setPartHidden(hidden: boolean, part: Parts): void;
 
+	/** Temporarily present one part without changing the saved desktop layout.
+	 * Hosts without this capability may omit it. Pass undefined to restore.
+	 * restoreSizes can retain pane sizes from before a narrow-window resize.
+	 */
+	setSinglePartLayout?(part: Parts | undefined, bottomInset?: number, availableHeight?: number, restoreSizes?: ReadonlyMap<Parts, IViewSize>): void;
+
+
 	/**
 	 * Returns whether the layout surface that represents the secondary sidebar is visible.
 	 */

@@ -13,7 +13,7 @@ import { ConfigurationTarget, IConfigurationService } from '../../../../platform
 import { ConfigurationScope, Extensions as ConfigurationExtensions, IConfigurationRegistry } from '../../../../platform/configuration/common/configurationRegistry.js';
 import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
-import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
+import { IInstantiationService, ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
 import { INotificationService } from '../../../../platform/notification/common/notification.js';
 import { IQuickInputService } from '../../../../platform/quickinput/common/quickInput.js';
 import { Registry } from '../../../../platform/registry/common/platform.js';
@@ -29,6 +29,8 @@ import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { VIEW_CONTAINER } from '../../files/browser/explorerViewlet.js';
 import { SIMPLE_UI_AGENT, SIMPLE_UI_ENABLED, SIMPLE_UI_LABELS, SimpleUISettings } from '../common/simpleUI.js';
 import { simpleUIHint, simpleUILabel, simpleUILabelKeys, SimpleUILabel } from './simpleUILabels.js';
+import { SimpleMobileLayout } from './mobile/simpleMobileLayout.js';
+import { SIMPLE_UI_MOBILE_LAYOUT } from '../common/simpleMobileLayout.js';
 import { mainWindow } from '../../../../base/browser/window.js';
 
 const enabled = ContextKeyExpr.equals(`config.${SIMPLE_UI_ENABLED}`, true);
@@ -51,6 +53,10 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).regis
 		[SIMPLE_UI_ENABLED]: {
 			type: 'boolean', default: true, scope: ConfigurationScope.APPLICATION,
 			description: localize('simpleUI.enabled.description', "Use a simplified workspace for documents, files, and an AI assistant. Turn off to restore your previous interface."),
+		},
+		[SIMPLE_UI_MOBILE_LAYOUT]: {
+			type: 'string', enum: ['auto', 'on', 'off'], default: 'auto', scope: ConfigurationScope.MACHINE,
+			description: localize('simpleUI.mobile.description', "Show one workspace screen at a time on narrow windows. Auto adapts to window width; on always uses mobile navigation; off keeps the desktop layout."),
 		},
 		[SIMPLE_UI_AGENT]: {
 			type: 'string', enum: agents.map(agent => agent.id), enumItemLabels: agents.map(agent => agent.label),
@@ -120,6 +126,7 @@ class SimpleUIContribution extends Disposable {
 	private readonly welcome = this._register(new DisposableStore());
 	private readonly settings: SimpleUISettings;
 	private snapshot: LayoutSnapshot | undefined;
+	private readonly mobile: SimpleMobileLayout;
 	private active = false;
 	private disposed = false;
 
@@ -131,25 +138,38 @@ class SimpleUIContribution extends Disposable {
 		@IStorageService private readonly storageService: IStorageService,
 		@IExtensionService private readonly extensionService: IExtensionService,
 		@INotificationService private readonly notificationService: INotificationService,
+		@IInstantiationService instantiationService: IInstantiationService,
 	) {
 		super();
 		this.settings = new SimpleUISettings(configurationService);
 		this.snapshot = storageService.getObject<LayoutSnapshot>(snapshotKey, StorageScope.WORKSPACE);
+		this.mobile = this._register(instantiationService.createInstance(SimpleMobileLayout, () => this.openAgent()));
 		this.updateWelcome();
 		this._register(configurationService.onDidChangeConfiguration(event => {
 			if (event.affectsConfiguration(SIMPLE_UI_LABELS)) {
 				this.updateWelcome();
 			}
-			if (event.affectsConfiguration(SIMPLE_UI_ENABLED) || event.affectsConfiguration(SIMPLE_UI_AGENT)) {
+			if (event.affectsConfiguration(SIMPLE_UI_ENABLED) || event.affectsConfiguration(SIMPLE_UI_AGENT) || event.affectsConfiguration(SIMPLE_UI_MOBILE_LAYOUT)) {
 				this.update();
 			}
 		}));
 		this._register(extensionService.onDidChangeExtensions(() => this.update()));
 		this._register(CommandsRegistry.registerCommand('workbench.simpleUI.openAgent', () => this.sequencer.queue(async () => {
 			if (this.active && !this.disposed) {
-				await this.openAgent();
+				if (this.mobile.isActive) {
+					await this.mobile.select('assistant');
+				} else {
+					await this.openAgent();
+				}
 			}
 		})));
+		this._register(CommandsRegistry.registerCommand('workbench.simpleUI.openFiles', async () => {
+			if (this.mobile.isActive) {
+				await this.mobile.select('files');
+			} else {
+				await this.viewsService.openViewContainer(VIEW_CONTAINER.id, true);
+			}
+		}));
 		this.update();
 	}
 
@@ -224,6 +244,7 @@ class SimpleUIContribution extends Disposable {
 			await this.viewsService.openViewContainer(VIEW_CONTAINER.id, false);
 		}
 		await this.openAgent();
+		this.mobile.update();
 	}
 
 	private moveContainer(id: string, location: ViewContainerLocation): void {
@@ -262,6 +283,7 @@ class SimpleUIContribution extends Disposable {
 	}
 
 	private async disable(): Promise<void> {
+		this.mobile.update();
 		await this.settings.disable();
 		this.active = false;
 		if (!this.snapshot) {
@@ -311,7 +333,7 @@ registerAction2(class extends Action2 {
 		});
 	}
 	async run(accessor: ServicesAccessor): Promise<void> {
-		await accessor.get(IViewsService).openViewContainer(VIEW_CONTAINER.id, true);
+		await accessor.get(ICommandService).executeCommand('workbench.simpleUI.openFiles');
 	}
 });
 
@@ -385,7 +407,8 @@ for (const [id, title, command, editorId] of [
 				accessor.get(INotificationService).info(localize('simpleUI.openDocumentFirst', "Open a document first."));
 				return;
 			}
-			await commands.executeCommand(command, ...(editorId ? [editorId] : []));
+			const mobile = accessor.get(IWorkbenchLayoutService).mainContainer.classList.contains('simple-mobile-layout');
+			await commands.executeCommand(id === 'preview' && mobile ? 'markdown.showPreview' : command, ...(editorId ? [editorId] : []));
 		}
 	});
 }
